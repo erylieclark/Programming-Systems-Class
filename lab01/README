@@ -10,5 +10,8 @@ INSTRUCTIONS:
 
 ANSWERS:
 
-1. 
+1. unix3.csc.calpoly.edu
+2. I read the introduction to user commands and learned that you could look at a calendar! (I know, very simple but I didn't know that). I also learned about the 'find' command to look for certain files in the system (although not great for large file systems) and a found the commands for navigating directories to be particularly useful (such as 'cd ..' for getting to one directory back).
+3. I used vim because a friend had recommended learning it a while ago, so it was easier for me to return to. It is kind of nice to have an editor where my fingers don't need to leave the keyboard.
+4. My program is simply supposed to output "Hello, World!" to the user. The only real particular issue I came across was running the executable file by typing 'a.out' instead of './a.out' which I learned tells the shell to look in the current directory for the file instead of looking in the folders found in PATH. I was also unsure what kind of instructions are applicable to this type of program. 
 
