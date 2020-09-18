@@ -59,7 +59,10 @@ void main(){
                 tSet = tCount/TAB;
                 continue;
             case '\b':
-                tCount--;
+                if (tCount > 0)
+                    tCount--;
+                else
+                    tCount = 0;
                 tSet = tCount/TAB;
                 /* Some if else to count possible decrements */
                 break;
