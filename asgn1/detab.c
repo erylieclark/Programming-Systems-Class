@@ -27,21 +27,23 @@
 *-----------------------------------------------------------------------------*/
 int tab(int tSet, int tCount){
     int nSpc = TAB-(tCount % tSet);
+    int i;
     for (i=0;i<nSpc;i++)
         putchar(' ');
     tCount = tCount + nSpc;
     return tCount;
 }
 
-int back(int tCount){
+void back(int tCount){
     tCount--;
 }
 
-int main(){
+void main(){
 
     int tCount = 0; /* Variable for tracking the spaces */
     int tSet = 0; /* Variable for tracking how many sets of 8 have been used */
     int lCount = 0; /* Count the number of lines in the file */
+    int c;
     while ((c = getchar()) != EOF){
         switch(c){
             case '\n':
@@ -55,7 +57,7 @@ int main(){
             case '\b':
                 tCount--;
                 tSet = tCount/TAB;
-                // Some if else to count possible decrements
+                /* Some if else to count possible decrements */
                 break;
             case '\r': /* Do we care about return carriage? */
                 break;
