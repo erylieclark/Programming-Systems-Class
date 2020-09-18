@@ -26,11 +26,15 @@
 * return: 
 *-----------------------------------------------------------------------------*/
 int tab(int tSet, int tCount){
-    int nSpc = TAB-(tCount % tSet);
-    int i;
-    for (i=0;i<nSpc;i++)
+    int nSpc = TAB-(tCount - TAB*tSet);
+    int i = 0;
+    
+    while(i<nSpc){
         putchar(' ');
-    tCount = tCount + nSpc;
+        i++;
+    }
+    
+    tCount += nSpc;
     return tCount;
 }
 
@@ -48,12 +52,12 @@ void main(){
         switch(c){
             case '\n':
                 tCount = 0; /* Reset tCount and tSet with a new line */
-                tSet = 0;
+                tSet = tCount/TAB;
                 break;
             case '\t':
                 tCount = tab(tSet, tCount);
                 tSet = tCount/TAB;
-                break;
+                continue;
             case '\b':
                 tCount--;
                 tSet = tCount/TAB;
@@ -62,10 +66,10 @@ void main(){
             case '\r': /* Do we care about return carriage? */
                 break;
             default: /* Default will be any other characters*/
-                putchar(c);
                 tCount++;
                 tSet = tCount/TAB;
                 break;
         }
+        putchar(c);
     }
 }
