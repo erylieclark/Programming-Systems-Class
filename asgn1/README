@@ -3,6 +3,9 @@ Assignment 1: Detab
 Erin Rylie Clark (eclark04)
 
 INSTRUCTIONS:
+1. Compile detab.c using:
+        gcc detab.c
+2. Run your desired infile through the detab executable and save into the
+    desired outfile by typing:
+        ./a.out < infile > outfile
 
-
-OTHER NOTES:
