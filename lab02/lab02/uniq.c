@@ -36,7 +36,6 @@ FILE *stdout;
 *	it is done with the information.
 *
 * param a:
-* param b:
 *
 * return:
 *
@@ -73,13 +72,13 @@ char *read_long_line(FILE *file){
 /*------------------------------------------------------------------------------
 * Function name: print_line
 *-----------------------------------------------------------------------------*/
-void print_line(char* c){
+/*void print_line(char* c){
     while( *c != '\0'){
         puts(c);
         c++;
     }
 }
-
+*/
 /*------------------------------------------------------------------------------
 * Function: main
 *-----------------------------------------------------------------------------*/
@@ -88,6 +87,7 @@ int main(){
     char *line_1, *line_2, *lnptr;
     int first_line, dup_line;
     first_line = 1;
+    line_2 = NULL;
     /* Call to read long line */
     
     while(1){
@@ -97,7 +97,7 @@ int main(){
         }
         else if(first_line){
             line_1 = lnptr;
-            print_line(line_1);
+            puts(line_1);
             first_line = 0;
         }
         else if(dup_line){
@@ -112,7 +112,7 @@ int main(){
         else{
             dup_line = 0;
             free(line_1);
-            print_line(line_2);
+            puts(line_2);
             line_1 = line_2;
         }
     }   

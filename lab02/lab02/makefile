@@ -10,13 +10,18 @@
 
 CC = gcc # Compile (and link, below) as C file
 LD = gcc
-CFLAGS = -Wall -g -ansi -pedantic # Flags used at compile time
+CFLAGS = -Wall -Wextra -O -g -ansi -pedantic # Flags used at compile time
 LDFLAGS = 
 DEPS = 
 OBJ = uniq.o
 
 uniq: $(OBJ) # Create uniq out of the listed object files
-	$(LD) $< # Link the object files
+	$(LD) -o $@ $< # Link the object files
 
 %.o: %.c $(DEPS) # All .o files depend on .c files and dependencies listed
-	$(CC) $(CFLAGS) -c $< # Compile the .c files
+	$(CC) $(CFLAGS) -c -o $@ $< # Compile the .c files
+
+.PHONY: clean
+clean: 
+	rm -f $(OBJ)
+	echo Clean done
