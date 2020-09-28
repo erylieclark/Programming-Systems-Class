@@ -45,18 +45,15 @@ FILE *stdout;
 char *read_long_line(FILE *file){
     
     /* Figure out how long this line is */
-    static FILE *location = file; /* Create a new static pointer to keep place in file in between function calls */
     int len = 0;
     char *mbuffer;
-    file = location; /* Use file now to mark the beginning of the next line */
     while( getchar() != '\n' && getchar() != EOF ){ /* Determine length of line, stopped by '\n' character*/
         len++;
-        location++;
     }
     if ( getchar() == EOF ){
         return NULL;
     }
-    else if ( getchar() = '\n' ){
+    else if ( getchar() == '\n' ){
 
         /* Allocate the necessary amount of space using malloc */
         mbuffer = malloc( len + 1 );
@@ -69,6 +66,7 @@ char *read_long_line(FILE *file){
     else {
         exit(EXIT_FAILURE);
     }
+    return mbuffer;
 }
 
 /*------------------------------------------------------------------------------
@@ -86,8 +84,8 @@ void print_line(char* c){
 *-----------------------------------------------------------------------------*/
 
 int main(){
-    char *line_1, *line_2;
-    int lnptr, first_line, dup_line;
+    char *line_1, *line_2, *lnptr;
+    int first_line, dup_line;
     first_line = 1;
     /* Call to read long line */
     
