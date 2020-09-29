@@ -50,11 +50,9 @@ char *read_long_line(FILE *file){
 * Function: main
 *-----------------------------------------------------------------------------*/
 int main(){
-    char *line_1, *line_2, *lnptr, empty;
-    int first_line, dup_line;
+    char *line_1, *line_2, *lnptr;
+    int first_line;
     first_line = 1;
-    empty = ' ';
-    line_2 = &empty;
     /* Call to read long line */
     while(1){
         
@@ -65,18 +63,16 @@ int main(){
             line_1 = lnptr;
             puts(line_1);
             first_line = 0;
+            continue;
         }
-        else if(dup_line){
+        else{
             line_2 = lnptr;
-            dup_line = 0;
         }
 
         if ( strcmp(line_1, line_2) == 0 ){
-            dup_line = 1;
             free(line_2);
         }
         else{
-            dup_line = 0;
             free(line_1);
             puts(line_2);
             line_1 = line_2;
@@ -84,7 +80,6 @@ int main(){
     }   
     return 0;
 }
-
 
     /* Store the first pointer for first line */
     /* Print first line */
