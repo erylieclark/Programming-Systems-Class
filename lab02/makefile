@@ -11,26 +11,37 @@
 CC = gcc # Compile (and link, below) as C file
 LD = gcc
 CFLAGS = -Wall -g -ansi -pedantic # Flags used at compile time
-LDFLAGS = 
-DEPS = 
-OBJ = uniq.o
+TESTDIR = /home/pn-cs357/lib/lab02/Inputs
+TESTINPUTS = $(TESTDIR)/8_ShrinkingLines
+TESTEXPECT = $(TESTDIR)/outputs/8_ShrinkingLines.expected
+MAIN = uniq
+OBJ = $(MAIN).o
 
-uniq: $(OBJ) # Create uniq out of the listed object files
-	$(LD) -o $@ $< # Link the object files
+all: $(MAIN)
 
-test: test.o
-	$(LD) -o $@ $< # Link the object files
+$(MAIN): $(OBJ) # Create uniq out of the listed object files
+	$(LD) -o $@ $<
 
-%.o: %.c $(DEPS) # All .o files depend on .c files and dependencies listed
-	$(CC) $(CFLAGS) -c -o $@ $< # Compile the .c files
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 .PHONY: clean
 clean: 
 	rm -f $(OBJ)
-	echo Clean done
 
 memcheck: test
 	valgrind --leak-check=yes --track-origins=yes ./$<
 
 debug: test
 	gdb --args ./$< Inputs/1_OneLine
+
+test: $(MAIN)
+        @echo "Testing $(MAIN):"
+	./$(MAIN) < $(TESTINPUTS) > $(MAIN).output
+	if diff $(MAIN).output $(TESTEXPECT) > /dev/null ; then \
+	 echo "ok.";
+	else
+	 echo "FAILURE.";
+	fi;
+	rm -f $(MAIN).output
+	done

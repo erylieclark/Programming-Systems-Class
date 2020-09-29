@@ -1,0 +1,60 @@
+/*******************************************************************************
+* Laboratory Exercise 2
+*
+* Erin Rylie Clark (eclark04)
+*******************************************************************************/
+
+/*--------------------------------INSTRUCTIONS--------------------------------*/
+1. Compile the c source code by entering "make"
+
+2. Run the executable
+
+/*------------------------------------OTHER-----------------------------------*/
+
+I realize that this code is not the most efficient. I know that using malloc()
+on every loop in incredibly inefficient especially if the line lengths are all
+about the same. A better way to do it is to set an initial size and only
+realloc() if the new line does not fit the old buffer. However, I was running
+out of time and was not sure if I would be able to implement this. I am planning
+on editing this function as described before adapting it into asgn2.
+
+/*-----------------------------------PROBLEMS---------------------------------*/
+1. 
+	a) char *cp;
+	b) char *ap;
+	c) int **pp;
+
+2. Technically yes you can but you have to type cast it: int* a = (int*)&a;
+	This means that a is a pointer to an integer and is setting that 
+	pointer to the address of a. However the address of a is technically
+	an int, and not a pointer to an int, so you have to type cast &a by
+	doing (int*)&a.
+
+3. The problem with this code is that p is not dereferenced when comparing it
+	to '\0'. p is a pointer to a char where as '\0' is a char. "p != '\0'"
+	will essentially be comparing the address of the first character in
+	the array to '\0' instead of the character itself. This can be fixed
+	by dereferencing p: *p != '\0;
+
+4. Arrays are the same as pointers in the fact that they both carry an address.
+	An array and pointer can be incremented in similar ways and can access
+	memory in similar ways. The difference, however, is that a pointer can
+	be redefined and point to many different addresses, whether or not they
+	are adjacent. An array must be allocated and will only every have access
+	to the addresses it gets during allocation.
+
+5. const is used when passing a string to perror so that the function cannot
+	modify the string *msg. const is not needed in sterror because it is 
+	only passing a copy of errnum, and therefore won't change the value
+	as it is outside of the function itself even if the value is changed
+	inside the function. Because a pointer can be changed outside of a
+	function from the inside, const is needed as a reminder not to adjust
+	the string.
+
+6. By entering " date -d '@2147483647' ", the answer is 2038. 2147483647 is the
+	number of seconds that can be stored in a 32 bit signed integer.
+
+7. Couldn't find this.
+
+
+
