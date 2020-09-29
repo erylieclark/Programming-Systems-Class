@@ -67,7 +67,7 @@ char *read_long_line(FILE *file){
 *-----------------------------------------------------------------------------*/
 int main(){
     char *line_1, *line_2, *lnptr; /* 2 lines for compare, 1 storage pointer */
-    int first_line = 1             /* Indicate if on first line */
+    int first_line = 1;             /* Indicate if on first line */
 
     while(1){   /* Run this loop until reach EOF, indicated by NULL */
         

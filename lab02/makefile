@@ -8,12 +8,13 @@
 #
 #*******************************************************************************
 
+SHELL = /bin/bash
 CC = gcc # Compile (and link, below) as C file
 LD = gcc
 CFLAGS = -Wall -g -ansi -pedantic # Flags used at compile time
-TESTDIR = /home/pn-cs357/lib/lab02/Inputs
-TESTINPUTS = $(TESTDIR)/8_ShrinkingLines
-TESTEXPECT = $(TESTDIR)/outputs/8_ShrinkingLines.expected
+TESTDIR = $(PWD)/Inputs
+TESTINPUTS = $(TESTDIR)/*
+TESTEXPECT = $(TESTDIR)/outputs/*
 MAIN = uniq
 OBJ = $(MAIN).o
 
@@ -29,19 +30,23 @@ $(MAIN): $(OBJ) # Create uniq out of the listed object files
 clean: 
 	rm -f $(OBJ)
 
-memcheck: test
+.PHONY: memcheck
+memcheck: $(MAIN)
 	valgrind --leak-check=yes --track-origins=yes ./$<
 
-debug: test
-	gdb --args ./$< Inputs/1_OneLine
+.PHONY: debug
+debug: $(MAIN)
+	gdb ./$<
 
 test: $(MAIN)
-        @echo "Testing $(MAIN):"
-	./$(MAIN) < $(TESTINPUTS) > $(MAIN).output
-	if diff $(MAIN).output $(TESTEXPECT) > /dev/null ; then \
-	 echo "ok.";
-	else
-	 echo "FAILURE.";
-	fi;
-	rm -f $(MAIN).output
+	@echo "Testing $(MAIN):"
+	@cd $(TESTDIR); for input in $(TESTINPUTS); do 			\
+	$(PWD)/$(MAIN) < $$input > $(MAIN).output;			\
+	 uniq < $$input > $(MAIN).expected;				\
+	 if diff $(MAIN).output $(MAIN).expected > /dev/null ; then 	\
+	  echo "ok.";				\
+	 else					\
+	  echo "FAILURE.";			\
+	 fi;					\
+	 rm -f $(MAIN).output $(MAIN).expected;	\
 	done
