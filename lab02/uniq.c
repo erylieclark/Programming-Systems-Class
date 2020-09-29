@@ -10,13 +10,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-FILE *stdin;
-FILE *stdout;
+
 /*------------------------------------------------------------------------------
 * Function name: read_long_line
 * 
 * Description: This function will take in the file, and read the next line. It
-* 	will allocate new space for the line, write the line into that buffer, and 
+* 	will allocate new space for the line, write the line into that buffer,
 *   return a pointer to the beginning of the buffer.
 * 
 * param: FILE *file, a pointer called file to a FILE object given by *stdin
@@ -46,12 +45,12 @@ char *read_long_line(FILE *file){
     }
     else if ( c == '\n' ){
         len++;              /* Account for '\n' character at end of line */
-        mbuffer = malloc( len );        /* Allocate a memory block long enough
+        mbuffer = malloc(len);        /* Allocate a memory block long enough
                                             for the line */
-        fseek(file, (-len), SEEK_CUR);  /* Return file pntr to beginning of
+        fseek(file, -len, SEEK_CUR);  /* Return file pntr to beginning of
                                             line in order to write line to
                                             mbuffer using fgets */
-        mbuffer = fgets(mbuffer, len, file); /* Write the line into mbuffer and
+        mbuffer = fgets(mbuffer, len, file); /* Write line into mbuffer and
                                                 return the pointer to mbuffer */
         file_pos += len;    /* Store the cur file pntr position in the static
                                 variable to save for the next function call */
@@ -66,12 +65,13 @@ char *read_long_line(FILE *file){
 * Function: main
 *-----------------------------------------------------------------------------*/
 int main(){
+    FILE *file = stdin;
     char *line_1, *line_2, *lnptr; /* 2 lines for compare, 1 storage pointer */
     int first_line = 1;             /* Indicate if on first line */
 
     while(1){   /* Run this loop until reach EOF, indicated by NULL */
         
-        if ( (lnptr = read_long_line(stdin)) == NULL ){
+        if ( (lnptr = read_long_line(file)) == NULL ){
             break;      /* Retrieve the beginning of the next line in lnptr */
         }
         else if(first_line){    /* If this if first line in stdin file */
