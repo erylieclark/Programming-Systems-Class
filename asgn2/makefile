@@ -32,11 +32,11 @@ clean:
 
 .PHONY: memcheck
 memcheck: $(MAIN)
-	valgrind -s --leak-check=yes --track-origins=yes ./$< < $(TESTDIR)/2_TwoDifferentLines
+	valgrind -s --leak-check=yes --track-origins=yes ./$< < not_empty
 
 .PHONY: debug
 debug: $(MAIN)
-	gdb --args ./$< $(TESTDIR)/ 
+	gdb --args ./$< no_perm 
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"

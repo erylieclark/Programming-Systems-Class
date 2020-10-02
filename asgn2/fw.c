@@ -39,14 +39,17 @@ char *read_word( FILE *file ){
     static int file_pos = 0;
     int i, len = 0; /* Length of current line */
     char c, *mbuffer; /* c to store cur char, mbuffer to store pntr to line */
-    fseek( file, file_pos, SEEK_SET ); /* Adjust file pntr to the correct spot
+    fseek( file, file_pos, SEEK_SET ); /* Adjust file ind to the correct spot
                                         in the file from last call. If first
                                         call, no adjustment will take place. */
     while( ! isalpha(c = fgetc(file)) ){ /* Ignore any non letters */
-        if ( c == EOF) /* Check if non-letter is EOF and return if yes */
+        if ( c == EOF){ /* Check if non-letter is EOF and return if yes */
+            file_pos = 0; /* Reset for next file */
             return NULL;
-        else    
-            len++;  /* Keep track of file pointer */
+        }
+        else{    
+            len++;  /* Keep track of file indicator */
+        }
     }
     
     file_pos += len; /* add len of non letters before resetting for a word */
@@ -61,13 +64,13 @@ char *read_word( FILE *file ){
                 malloc needs to account for the '\0' that fgets will add to 
                 the end of the word */
     mbuffer = malloc(len); /* Allocate enough memory for the word */
-    fseek(file, -len, SEEK_CUR); /* Return file ptr to start of word */
+    fseek(file, -len, SEEK_CUR); /* Return file indicator to start of word */
     mbuffer = fgets(mbuffer, len, file); /* Copy word into mbuffer */
-    file_pos += len; /* Store file pntr pos to set on next call */
+    file_pos += len; /* Store file indicator pos to set on next call */
     
     for( i=0 ; i<len ; i++ ){ /* Format the word properly */
         if( isupper(mbuffer[i]) ){ /* Convert uppercase letters to lower case */
-            mbuffer[i] = (char) tolower(mbuffer[i]);
+            mbuffer[i] = (char) tolower(mbuffer[i]); /* place back in buffer */
         }
     }
     return mbuffer;
@@ -114,20 +117,20 @@ int read_optional_input(int argc, char **argv){
                         /* do nothing */;
                     else{       /* Invalid argument if not all digits */
                         printf("Invalid argument for option -n\n");
-                        printf("Usage: fw [-n num] [file1 [file2 ...]]\n");
+                        printf("usage: fw [-n num] [file1 [file2 ...]]\n");
                         exit(EXIT_FAILURE);
                     }
                 }
                 num_words = atoi(optarg); /* Convert digits to an int */
-                return num_words;   /* Return the value immediately */
+                break;
 
             case ':':   /* User did not enter a proper argument */
                 printf("Argument required for option -n\n");
-                printf("Usage: fw [-n num] [file1 [file2 ...]]\n");
+                printf("usage: fw [-n num] [file1 [file2 ...]]\n");
                 exit(EXIT_FAILURE);
         }
     }
-    return DEFAULT_NUM_WORDS;
+    return num_words;
 }      
 
 /*------------------------------------------------------------------------------
@@ -143,16 +146,28 @@ int read_optional_input(int argc, char **argv){
 *-----------------------------------------------------------------------------*/
 FILE *open_file(int argc,char **argv){
     FILE *file;
-
-    if ( (argc-optind) < 1 ){       /* Check for additional file arguments */
-        printf("No file given.\n");
-        file = stdin;
-    }
-    else{
-        while( !(file = fopen(argv[optind],"r")) ){
-            perror(argv[optind]); /* Find the next file that can be opened */
-            optind++; /* Inc to next arg if current can't be opened */
+   
+    if ( (argc-optind) < 1 ){       /* Check for more arguments */
+        if ( stdin != NULL){        /* If no files, check if stdin has val  */
+            file = stdin;           /* Read from stdin if yes */
         }
+        else if ( argv[optind] == NULL){ /* No more arguments left in argv
+                                            and nothing in stdin */
+            file = NULL;    /* Pass null to end the loop in main */
+        }
+    }
+    else{   /* If there are more arguments to read from, try to open them */
+        while( !(file = fopen(argv[optind],"r")) ){ /* Check for successful
+                                                        opening */
+            perror(argv[optind]); /* Find the next file that can be opened */
+            optind++; /* Inc to check if there is a next argument */
+            if ( (argc-optind) < 1){
+                file = NULL; /* Last file not opened, end loop in main*/
+                break;
+            }
+        }
+        optind++;
+        stdin = NULL;
     }
     return file;
 }
@@ -162,17 +177,26 @@ FILE *open_file(int argc,char **argv){
 *-----------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
     char * new_word;
-    int NUM_WORDS;
+    int NUM_WORDS, stdin_flag = 0;
     FILE *file;
     NUM_WORDS = read_optional_input(argc, argv);
-    printf("Num_words returned to main as: %d\n", NUM_WORDS);
-    file = open_file(argc, argv);
     
-    while ( (new_word = read_word(file)) != NULL){
-        printf("%s\n",new_word);
-        free(new_word);
+    while ( (file = open_file(argc, argv)) != NULL ){
+        
+        if (stdin != NULL)
+            stdin_flag = 1;
+        while ( (new_word = read_word(file)) != NULL){
+            printf("%s\n",new_word);
+            free(new_word);
+        }
+        if ( ! stdin_flag ){
+            if(fclose(file))
+                perror(argv[optind-1]);
+        }
+        else if (stdin_flag){
+            break;
+        }
     }
-    
     return 0;
 }
 
