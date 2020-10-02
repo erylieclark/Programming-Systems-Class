@@ -1,0 +1,28 @@
+TESTS:
+	00_usage:            usage message with -n and no arg
+	01_usage_notanumber: usage message with -n and no arg
+
+	02_emptyfile	     run on /dev/null
+	03_emptystdin	     run < /dev/null
+
+	04_multifile	     
+
+	05_missingfile
+
+	06_missingfileGoOn
+
+	07_toofewwords
+
+	08_reallylongline
+
+	09_reallylongword
+
+	10_oneword
+	11_twentywords
+
+	12_usrdictwords:	     run on usr/dict/words
+	13_usrdictwordstwice: run on usr/dict/words twice
+	14_man1:
+
+
+	15_tendistinctwords
