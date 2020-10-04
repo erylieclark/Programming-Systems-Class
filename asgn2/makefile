@@ -12,31 +12,32 @@ SHELL = /bin/bash
 CC = gcc # Compile (and link, below) as C file
 LD = gcc
 CFLAGS = -Wall -g -ansi -pedantic # Flags used at compile time
-TESTDIR = $(PWD)/Inputs
+TESTDIR = $(PWD)/MyTests
 TESTINPUTS = $(TESTDIR)/*
 TESTEXPECT = $(TESTDIR)/outputs/*
 MAIN = fw
-OBJ = $(MAIN).o
+OBJ = $(MAIN).o user_input.o read_word.o hashing.o
+DEPS = user_input.h read_word.h hashing.h
 
 all: $(MAIN)
 
 $(MAIN): $(OBJ) # Create uniq out of the listed object files
-	$(LD) -o $@ $<
+	$(LD) -o $@ $(OBJ)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+%.o: %.c $(DEPS)
+	$(CC) $(CFLAGS) -c -o $@ $< 
 
 .PHONY: clean
 clean: 
-	rm -f *%.o 
+	rm -f $(OBJ) 
 
 .PHONY: memcheck
 memcheck: $(MAIN)
-	valgrind -s --leak-check=yes --track-origins=yes ./$< < not_empty
+	valgrind -s --leak-check=yes --track-origins=yes ./$< < MyTests/dup_words
 
 .PHONY: debug
 debug: $(MAIN)
-	gdb --args ./$< no_perm 
+	gdb --args ./$< MyTests/empty MyTests/not_empty 
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"
