@@ -50,6 +50,8 @@ int main(int argc, char *argv[]){
 
     NUM_WORDS = read_optional_input(argc, argv); /* Get the number of words the 
             user would like to see before reading the file input */
+
+    node_t *top_words[NUM_WORDS] = {NULL}; /* Initialize all pointers as NULL */
     
     printf("Number of words requested: %d\n", NUM_WORDS);
 
@@ -59,7 +61,7 @@ int main(int argc, char *argv[]){
             stdin_flag = 1; /* Set flag if reading from stdin */
         while ( (new_word = read_word(file)) != NULL){ 
             /* Get the next word from file(or stdin), and stop when EOF */
-            handle_hash(new_word); 
+            handle_hash(new_word, NUM_WORDS, top_words); 
         }
     
         if ( ! stdin_flag ){ /* If reading from a file, close the file */

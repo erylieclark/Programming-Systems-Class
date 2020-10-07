@@ -37,7 +37,8 @@ node_t * lookup_word( char *word) {
  
     while( node_pntr != NULL){ /* While node_pntr is pointing to a node */
         printf("Comparing the pointer\n");
-        if ( (strcmp( word, (node_pntr->word) )) == 0 ){ /* Check the name value of the node */
+        if ( (strcmp( word, (node_pntr->word) )) == 0 ){
+                /* Check the name value of the node */
             printf("Word is found in the array.\n");
             free(word);
             return node_pntr; /* If the word is the same, return the current pointer */
@@ -63,7 +64,7 @@ node_t *create_new_node(char *word ){
     new_node_pntr -> count = 1;
     new_node_pntr -> word = word;
     new_node_pntr -> next = NULL;
-
+    new_node_pntr -> count_pntr = NULL;
     return new_node_pntr;
 }
 
@@ -82,7 +83,7 @@ void insert_word( node_t *node_pntr ){
 /*------------------------------------------------------------------------------
 * Function: handle_hash
 *-----------------------------------------------------------------------------*/
-void handle_hash(char *word){
+void handle_hash(char *word, int k_words, node_t *top_words_arr[]){
     node_t *node_pntr;
     
     node_pntr = lookup_word(word); 

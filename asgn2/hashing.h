@@ -21,6 +21,8 @@ struct node{
     char *word;
     int count;
     struct node *next;
+    struct node *top_word_node_pntr; /* Pointer to keep track of a linked list if this 
+        word is tied for last place in top words list */
 };
 
 typedef struct node node_t;
@@ -31,6 +33,6 @@ unsigned long hash( char *word );
 node_t *lookup_word( char *word ) ;
 node_t *create_new_node( char *word );
 void insert_word( node_t *node_pntr );
-void handle_hash( char *word);
+void handle_hash( char *word, int k_words);
 
 #endif
