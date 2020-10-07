@@ -16,7 +16,7 @@ extern int lowest_count = 0; /* Init lowest count of a single word */
 * Function: top_k_words
 *-----------------------------------------------------------------------------*/
 
-void top_k_words( int k_words, node_t *hash_table[] ){
+node_t * top_k_words( int k_words, node_t *hash_table[] ){
     node_t *top_words_head_pntr = NULL;
     node_t *cur_node_pntr;
     /* Step through hash table */
@@ -33,21 +33,128 @@ void top_k_words( int k_words, node_t *hash_table[] ){
                 /* Do nothing with word, its count is not large enough */
             else{
                 /* If count is higher, step through linked list and compare counts */
+                compare_top_k(cur_node_pntr, k_words);
                
     }
-
-void compare_top_k( node_t * cur_node_pntr ){
+/*------------------------------------------------------------------------------
+* Function: compare_top_k
+*-----------------------------------------------------------------------------*/
+void compare_top_k( node_t * cur_node_pntr , int k_words){
     int k = 0;
+    node_t * list_pntr;
+    node_t * prev_node_pntr;
+    
     if ( top_words_head_pntr = NULL){ /* First word in list */
         top_words_head_pntr = cur_node_pntr; /* Point to node of current word */
         lowest_count = top_words_head_pntr -> count;
+        top_words_head_pntr -> next = NULL;
     }
     else{
+        list_pntr = top_words_head_pntr; /* Start at top of list */
         while( k < k_words ){ /* Be sure to stay within range */
-            if ( cur_node_pntr ->
-            
-    
+            if ( (cur_node_pntr -> count) < (list_pntr -> count) ){
+                /* Count of node is less than count of current spot in list */
+                prev_node_pntr = list_pntr; 
+                    /* save in case we need to insert after */
+                if( (check_list_end(k, k_words, cur_node_pntr, list_pntr)) == NULL){
+                    break;
+                }
+                list_pntr = list_pntr -> next;
+                    /*Go to next node */
+            }
+            else if ( (cur_node_pntr -> count) > (list_pntr -> count) ){
+                /* Count of node is greater than current spot in list */
+                insert_node(prev_node_pntr, cur_node_pntr, list_pntr);
+                break;
+            }
+            else{
+                /* Counts are equal, compare lexigraphically */
+                if ( compare_lexi( (cur_node_pntr -> word),\
+                    (list_pntr -> word) ) < 0){ 
+                        /* Current word is less than list word */
+                    prev_node_pntr = list_pntr;
+                        /* Save in case we need to insert after */
+                    if( (check_list_end(k, k_words, cur_node_pntr, list_pntr)) == NULL){
+                        break;
+                    }
+                    list_pntr = list_pntr -> next;
+                        /* Go to next node */
+                else if ( compare_lexi( (cur_node_pntr -> word),\
+                    (list_pntr -> word) ) > 0){ 
+                        /* Current word is greater than list word */
+                    insert_node(prev_node_pntr, cur_node_pntr, list_pntr);
+                    break; 
+            }
+            k++;
+        }
+        dump_last_node(top_words_head_pntr, k_words);
+    }
+}
+/*------------------------------------------------------------------------------
+* Function: check for end of list
+*-----------------------------------------------------------------------------*/
+node_t *check_list_end(int k, int k_words, node_t *cur_node_pntr, node_t *list_pntr){
+    if ( (list_pntr->next == NULL) && ( k < (k_words - 1)) ){
+        /* Next pointer is null and not at end of list */
+        /* List hasn't been filled yet */
+        /* Insert word at this spot */
+        list_pntr -> next = cur_node_pntr;
+        cur_node_pntr -> next = NULL;
+        return NULL;
+    }
+    else if ( (list_pntr->next == NULL) && ( k == (k_words - 1)) ){
+        /* Next pointer is null and at end of list */
+        /* List is filled, do not insert word */
+        cur_node_pntr = NULL;
+    }
+    else{
+        /* Do nothing */
+    }
+    return cur_node_pntr;
+}
 
+/*------------------------------------------------------------------------------
+* Function: compare_lexi
+*-----------------------------------------------------------------------------*/
+int compare_lexi(char *new_word, char * list_word){
+    int result = strcmp(new_word, list_word);
+    return result;
+}
+
+/*------------------------------------------------------------------------------
+* Function: insert node
+*-----------------------------------------------------------------------------*/
+    
+void insert_node(node_t *prev_node_pntr, node_t *cur_node_pntr, node_t *list_pntr){
+    prev_node_pntr -> next = cur_node_pntr;
+    cur_node_pntr -> next = list_pntr;
+}
+
+/*------------------------------------------------------------------------------
+* Function: dump_last_node
+*-----------------------------------------------------------------------------*/
+
+void dump_last_node(node_t *top_words_head_pntr, int k_words){
+    int k = 0;
+    node_t *list_pntr = top_words_head_pntr;
+    while( k < k_words){
+        /* Step through list */
+        list_pntr = list_pntr -> next;
+        if(list_pntr == NULL){
+            lowest_count = list_pntr -> count;
+            return;
+        if (k == (k_words - 1) ){
+            lowest_count = list_pntr -> count; 
+                /* Grab lowest count while we're at it */
+        }
+        k++;
+    }
+    list_pntr -> next = NULL; /* Drop last node off of list */
+}
+
+/*------------------------------------------------------------------------------
+* Function: compare_lowest_count
+*-----------------------------------------------------------------------------*/
 
 node_t * compare_lowest_count( node_t *cur_node_pntr ){
     /* Compare count of current struct to lowest count */
@@ -57,80 +164,4 @@ node_t * compare_lowest_count( node_t *cur_node_pntr ){
         /* Do nothing, return the pointer */
     }
     return cur_node_pntr
-}
-    /* Store node in between correct nodes */
-    /* If count is same as another node, compare lexographically */
-    /* Dump last node */
-    /* If comparing last node in list, dump the struct that is lower */
-    
-    /* Compare the pointer of the current struct to the pointers stored
-        in the table to see if the word is already in the table */
-    for (i = 0 ; i < k_words ; i++ ){
-        if (top_words_arr[i] == node_pntr){
-            /* If pointer matches, the word is already in the table */
-            cur_count = node_pntr -> count; /* Grab the count */
-            if ( (cur_count - 1) == lowest_count){ /* Might be pointing to 
-                                                    a linked list */
-                dump_linked_list(low_ptr);
-                replace_pointer_in_list();
-        }
-    }
-
-
-
-    lowest_count = find_lowest_count(k_words, top_words_arr, low_ptr);
-
-void replace_pointer_in_list(low_ptr){
-    
-}
-
-void check_lowest_count( node_t *node_pntr){
-    static int lowest_count;
-    if ( (cur_count -1) == lowest_count){
-
-void dump_linked_list(node_t **low_pntr){
-    /* Clear the count pointers of each struct in linked list */
-    node_t *temp;
-    node_t *node;
-    node = *low_pntr;
-    while( (temp = node -> count_pntr) != NULL){
-        node -> count_pntr = NULL;
-        node = temp -> count_pntr;
-    }
-    
-
-int find_lowest_count(int k_words, node_t *top_words_arr[], node_t **low_pntr){
-    int i = 1 /* Count of first struct and start scanning at second struct */
-    int lowest = (top_words_arr[i]) -> count;
-    while( i < k_words ){ /* Scan the array to find the lowest count */
-        if( ( (top_words_arr[i]) -> count) < lowest){
-            lowest = (top_words_arr[i]) -> count; /* Store the lowest count*/
-            low_pntr = top_words_arr[i]; /* Set the pointer to the location of
-                                            the lowest count */
-        }
-    }
-    return lowest;
-}
-
-    /* If pointer matches, the word is already in the table */
-        /* For the case where pointer is pointing to linked list of lowest
-            count, check if count is exactly one above lowest count. If yes,
-            dump linked list of lowest count and replace with new pointer */
-
-    /* If pointer doesn't match, check the value of count */
-
-    /* Compare to static value of lowest count so far */
-
-    /* If count is lower than lowest count, ignore */
-
-    /* If count is higher than lowest count, replace lowest count pointer
-        with current pointer */
-    /* Find new lowest count and store */
-
-    /* If count is equal to lowest count, add pointer to linked list */
-
-void drop_lowest_count_list( struct *lowest){
-
-    /* clear all count_ptr's */
-
 }

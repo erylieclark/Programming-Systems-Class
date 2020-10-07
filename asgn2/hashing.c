@@ -83,7 +83,7 @@ void insert_word( node_t *node_pntr ){
 /*------------------------------------------------------------------------------
 * Function: handle_hash
 *-----------------------------------------------------------------------------*/
-void handle_hash(char *word, int k_words, node_t *top_words_arr[]){
+void handle_hash(char *word, int k_words){
     node_t *node_pntr;
     
     node_pntr = lookup_word(word); 

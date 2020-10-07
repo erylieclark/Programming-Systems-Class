@@ -22,7 +22,7 @@
 #include "user_input.h"
 #include "read_word.h"
 #include "hashing.h"
-
+#include "top_words.h"
 
 
 /*------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]){
             stdin_flag = 1; /* Set flag if reading from stdin */
         while ( (new_word = read_word(file)) != NULL){ 
             /* Get the next word from file(or stdin), and stop when EOF */
-            handle_hash(new_word, NUM_WORDS, top_words); 
+            handle_hash(new_word, NUM_WORDS); 
         }
     
         if ( ! stdin_flag ){ /* If reading from a file, close the file */
@@ -72,6 +72,9 @@ int main(int argc, char *argv[]){
             break;
         }
     }
+
+    
+
     return 0;
 }
 
