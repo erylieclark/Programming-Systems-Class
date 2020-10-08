@@ -16,7 +16,7 @@ TESTDIR = $(PWD)/MyTests
 TESTINPUTS = $(TESTDIR)/*
 TESTEXPECT = $(TESTDIR)/outputs/*
 MAIN = fw
-OBJ = $(MAIN).o user_input.o read_word.o hashing.o top_words.o
+OBJ = $(MAIN).o user_input.o new_read_word.o hashing.o top_words.o
 DEPS = user_input.h read_word.h hashing.h top_words.h
 
 all: $(MAIN)
