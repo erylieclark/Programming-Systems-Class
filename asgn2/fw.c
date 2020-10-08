@@ -44,6 +44,9 @@ void print_output(int num_words, node_t *top_words_pntr){
     int i = 0;
     node_t * list_pntr = top_words_pntr;
     printf("The top %d words (out of %ld) are:\n", num_words, total_uniq_words);
+    if (list_pntr == NULL){
+        return; /* Do not try to access words if there aren't any */
+    }
     while ( i < num_words){
         printf("%9d %s\n", list_pntr -> count, list_pntr -> word);
         list_pntr = list_pntr -> next;

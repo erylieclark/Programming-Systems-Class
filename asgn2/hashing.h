@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define HASH_TABLE_SIZE 20
+#define HASH_TABLE_SIZE 32000
 /* Below is the structure for the nodes that will be inserted into the hash
 	table, it simply contains the word, its count, and a pointer to the
 	next node */

@@ -118,7 +118,7 @@ node_t * compare_top_k( node_t * cur_node_pntr , int k_words, \
             else{
                 /* Counts are equal, compare lexigraphically */
                 if ( compare_lexi( (cur_node_pntr -> word),\
-                    (list_pntr -> word) ) > 0){ 
+                    (list_pntr -> word) ) < 0){ 
                         /* Current word belongs below list word */
                     prev_node_pntr = list_pntr;
                         /* Save in case we need to insert after */
@@ -132,7 +132,7 @@ node_t * compare_top_k( node_t * cur_node_pntr , int k_words, \
                     list_pntr = list_pntr -> next;  /* Go to next node */
                 }
                 else if ( compare_lexi( (cur_node_pntr -> word),\
-                    (list_pntr -> word) ) < 0){ 
+                    (list_pntr -> word) ) > 0){ 
                         /* Current word belongs above list word */
                     if (k == 0){ /* Node belongs at head, above first node */
                         top_words_head_pntr = insert_at_head(cur_node_pntr, \
@@ -186,7 +186,8 @@ node_t * insert_at_head(node_t *cur_node_pntr, node_t *list_pntr,\
 * param: cur_node_pntr - pointer to the word to be inserted
 * param: list_pntr - pointer to the node the word will be inserted after
 *-----------------------------------------------------------------------------*/
-node_t *check_list_end(int k, int k_words, node_t *cur_node_pntr, node_t *list_pntr){
+node_t *check_list_end(int k, int k_words, node_t *cur_node_pntr, \
+        node_t *list_pntr){
     if ( (list_pntr->next == NULL) && ( k < (k_words - 1)) ){
         /* Next pointer is null and not at end of list */
         /* List hasn't been filled yet */
@@ -237,7 +238,8 @@ int compare_lexi(char *new_word, char * list_word){
 *   point to
 *-----------------------------------------------------------------------------*/
     
-void insert_node(node_t *prev_node_pntr, node_t *cur_node_pntr, node_t *list_pntr){
+void insert_node(node_t *prev_node_pntr, node_t *cur_node_pntr, \
+        node_t *list_pntr){
     prev_node_pntr -> next = cur_node_pntr; /* Set the previous node to point
         to the current node */
     cur_node_pntr -> next = list_pntr; /* Set the current node to point to the
@@ -263,9 +265,9 @@ void dump_last_node(node_t *top_words_head_pntr, int k_words){
     while( k < k_words){
         /* Step through list */
         if( (list_pntr -> next) == NULL){ /* If there aren't any more nodes
-                after this one, and the list is not yet full, get the count
-                and exit before getting rid of a node */
-            lowest_count = list_pntr -> count;
+                after this one, and the list is not yet full, make sure the
+                lowest count stays at zero */
+            lowest_count = 0;
             return;
         }
         
