@@ -1,0 +1,13 @@
+/*******************************************************************************
+* Assignment 2: fw
+*
+* Erin Rylie Clark (eclark04)
+*******************************************************************************/
+
+/*--------------------------------INSTRUCTIONS--------------------------------*/
+1. Compile the c source code by entering "make"
+
+2. Run the executable
+
+/*------------------------------------OTHER-----------------------------------*/
+This program passes all the tests that involve smaller files. Unfortunately I wasn't able to figure out how to get it to run faster to be able to output anything for the tests that had larger files in the alotted amount of time. I'm pretty sure that as of right now, my issue is my read_word function, as it is inefficient at reading a line and mallocing space for it. I need to change it to the way it was done in class where it allocates a certain size buffer and trims it down if it doesn't overflow, and expands it if it does. Mine is getting the word first, back tracking, and then allocating the space for the word and copying it in. I think this is what is taking the most time.

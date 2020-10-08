@@ -82,8 +82,6 @@ node_t * compare_top_k( node_t * cur_node_pntr , int k_words, \
     node_t * prev_node_pntr;
     if ( top_words_head_pntr == NULL){ /* First word in list */
         top_words_head_pntr = cur_node_pntr; /* Point to node of current word */
-        lowest_count = top_words_head_pntr -> count; /* Set this is the
-            current lowest count in the list */
         top_words_head_pntr -> next = NULL; /* Next pointer points to nothing */
         prev_node_pntr = top_words_head_pntr; /* If the next word needs to
             know what the node before it was */

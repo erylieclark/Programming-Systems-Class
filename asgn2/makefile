@@ -37,7 +37,7 @@ memcheck: $(MAIN)
 
 .PHONY: debug
 debug: $(MAIN)
-	gdb --args ./$< MyTests/empty Tests/Data/empty 
+	gdb --args ./$< MyTests/empty Tests/Data/a Tests/Data/b Tests/Data/c 
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"
