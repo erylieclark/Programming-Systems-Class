@@ -13,10 +13,15 @@
 /*------------------------------------------------------------------------------
 * Function: read_word
 *
+* Description: This function will separate out a word from the file and return
+*   it to main. It will skip past any non alphabetic characters and get a
+*   string of letters until it hits the next non alphabetic character, then
+*   return the word. The function also keeps track of the length of the word
+*   and allocates space in memory to store it. The function will return a
+*   pointer to the first character of the word.
 *
-* To Fix: There will likely be some issue with reading a null for both EOF and
-*   a non alpha character. Will need to separate the two so that main knows
-*   when to close the file and check for a new one.
+* param: file - file to get the word from
+*
 *-----------------------------------------------------------------------------*/
 char *read_word( FILE *file ){
     static int file_pos = 0;

@@ -16,23 +16,25 @@
 #include <string.h>
 
 #define HASH_TABLE_SIZE 20
-
+/* Below is the structure for the nodes that will be inserted into the hash
+	table, it simply contains the word, its count, and a pointer to the
+	next node */
 struct node{
     char *word;
     int count;
     struct node *next;
-    struct node *top_word_node_pntr; /* Pointer to keep track of a linked list if this 
-        word is tied for last place in top words list */
 };
 
 typedef struct node node_t;
-node_t *hash_table[HASH_TABLE_SIZE]; /* Array of pointers to node
+extern node_t *hash_table[HASH_TABLE_SIZE]; /* Array of pointers to node
                                                 structs */
+extern unsigned long total_uniq_words;
+extern node_t **head_pntr; /* Keep track of where to insert the new node */
 
 unsigned long hash( char *word );
 node_t *lookup_word( char *word ) ;
 node_t *create_new_node( char *word );
 void insert_word( node_t *node_pntr );
-void handle_hash( char *word, int k_words);
+void handle_hash( char *word);
 
 #endif

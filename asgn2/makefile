@@ -16,13 +16,13 @@ TESTDIR = $(PWD)/MyTests
 TESTINPUTS = $(TESTDIR)/*
 TESTEXPECT = $(TESTDIR)/outputs/*
 MAIN = fw
-OBJ = $(MAIN).o user_input.o read_word.o hashing.o
-DEPS = user_input.h read_word.h hashing.h
+OBJ = $(MAIN).o user_input.o read_word.o hashing.o top_words.o
+DEPS = user_input.h read_word.h hashing.h top_words.h
 
 all: $(MAIN)
 
 $(MAIN): $(OBJ) # Create uniq out of the listed object files
-	$(LD) -o $@ $(OBJ)
+	$(LD) -o $@ $(OBJ) -I.
 
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $< 
@@ -37,7 +37,7 @@ memcheck: $(MAIN)
 
 .PHONY: debug
 debug: $(MAIN)
-	gdb --args ./$< MyTests/empty MyTests/not_empty 
+	gdb --args ./$< MyTests/empty MyTests/extra_spaces 
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"
