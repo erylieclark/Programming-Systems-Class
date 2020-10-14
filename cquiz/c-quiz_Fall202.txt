@@ -1,0 +1,61 @@
+Erin Rylie Clark
+eclark 04
+
+I wasn't able to download the pdf with my text in it so I am
+resorting to writing it here:
+
+1. It is important to use the sizeof() operator on a structure because although
+you may be able to calculate how many bytes each of the types in the structure
+will take up, they may be stored in memory in a way that uses a different number
+of bytes. This is similar to the reason that you need to specify what a pointer 
+is pointing to. The computer needs to know how far to go to get to the start of 
+the next item. Structures may contain different sized members, so if they
+assumed that the smallest member (lets say a char - 1 byte) is how far they need
+to go to get to the next member, it may point to a larger member several times
+and in the wrong spot (for example, an int- 4 bytes, it would point to 4 times
+and would never use the whole int as it was intended). So, in order to prevent
+this, it will likely take the size of the largest member, and stick the
+smallest members in them, so that no information is lost. This means it will
+take up more space than you would count for it. Not only this reason, but
+different systems may have different sizes for each type ( ie an int could be 16
+or 32 bits), and if you want your code to be portable, you should just ask the
+computer how much space it has alotted for the structure.
+
+2. I would assume that option b would run faster, the reason being that if you
+are putting a dictionary with alphabetically sorted words into a binary tree,
+you are only ever going to go in one direction, and the binary tree would
+essentially be useless in that it has to look through every single word of the
+dictionary before the current word to find where the current word fits. If you
+run all of the files in /usr/shar/man first, you have an opportunity to spread
+out the binary tree instead of putting every word on the same branch all the
+way down. This way, when you get to the dictionary locating the words will
+take less iterations through the tree.
+
+3. The static declaration can mean different things in different contexts:
+ A) a function itself: declaring a function static means that the function
+    name will only exist within the .c file that it resides in. Other files
+    will not be able to see that function and therefore will not be able access
+    it. 
+ B) inside a function: if a variable is declared static inside a function, it
+    means that the value will persist through function calls. Normally, a
+    variable declared and defined inside a function will be redeclared and
+    redefined each time it enters the function, and will be destroyed every
+    time it exits the function. Declaring the variable static, allocates memory
+    for the variable instead of pushing it onto the stack, and therefore you
+    are able to access the value that  the variable was when it exited out of
+    the last function call.
+
+4. getchar returns an int because EOF is an integer value and therefore would
+not fit into a character. EOF is an interger because it needs to be
+distinguished from any character value. A larger width for the EOF value
+distinguishes it from any character that fits into a 1 byte char.
+
+5. file submitted as "q5.c"
+
+6. file submitted as "q6.c"
+
+7. file submitted as "tac.c"
+
+
+
+
