@@ -16,8 +16,8 @@ TESTDIR = $(PWD)/inputs
 TESTINPUTS = $(TESTDIR)/*
 TESTEXPECT = $(TESTDIR)/outputs/*
 MAIN = htable
-OBJ = $(MAIN).o hist.o
-DEPS = hist.h
+OBJ = $(MAIN).o hist.o huff_tree.o
+DEPS = hist.h huff_tree.h
 all: $(MAIN)
 
 $(MAIN): $(OBJ) # Create uniq out of the listed object files
@@ -36,7 +36,7 @@ memcheck: $(MAIN)
 
 .PHONY: debug
 debug: $(MAIN)
-	gdb --args ./$< inputs/02_twochar
+	gdb --args ./$< inputs/00_empty
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"

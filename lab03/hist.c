@@ -38,7 +38,7 @@ int compare_char( node_t *first , node_t *second ){
     unsigned char b = second -> c;
     result = ( a < b )? -1 : ( a > b );
     if ( result == 0 ){
-        fprintf(stderr,"Error: Duplicate node.");
+        result = -1;
     }
     return result;
 }
@@ -63,17 +63,17 @@ int compare_count( node_t *first, node_t *second ){
     return result;
 }
 /*------------------------------------------------------------------------------
-* Function: create_new_node
+* Function: create_new_leaf
 *
-* Description: This function creates a new node for any char in the hist table
-*   that has a count greater than 0, and initialize its values.
+* Description: This function creates a new leaf node for any char in the hist
+*   table that has a count greater than 0, and initialize its values.
 *
 * param: c - character to make a struct for
 * param: count - count of character in the file
 *
 * return: new_node_pntr - a pointer to the new node
 *-----------------------------------------------------------------------------*/
-node_t * create_new_node( char c , int count ){
+node_t * create_new_leaf( char c , int count ){
     node_t * new_node_pntr;
 
     new_node_pntr = (node_t *) malloc(sizeof(node_t)); /* Allocate node space */
@@ -170,8 +170,8 @@ void add_to_list( node_t * new_node_pntr ){
 * Function: create_list
 * 
 * Description: This function will take the hist_table, create a struct for any
-*   character that has a count of at least 1, create a structure for it, and 
-*   order the list by count in ascending order.
+*   character that has a count of at least 1 and order the list by count in
+*   ascending order.
 *
 * return: head_pntr - a pointer to the start of the list
 *-----------------------------------------------------------------------------*/
@@ -183,8 +183,9 @@ void create_list( void ){
             continue; /* Do not make a node for it if it has no count */
         }
         else{
-            new_node_pntr = create_new_node( i , hist_table[i] );
+            new_node_pntr = create_new_leaf( i , hist_table[i] );
             add_to_list(new_node_pntr);
+            printf("Hex: 0x%02X, Count = %d\n", new_node_pntr -> c, new_node_pntr -> count);
         }
     }
     return;

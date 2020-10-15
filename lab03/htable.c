@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "hist.h"
+#include "huff_tree.h"
 
 /*------------------------------------------------------------------------------
 * Function: init
@@ -37,11 +38,40 @@
 *-----------------------------------------------------------------------------*/
 
 void print_output( void ){
-    node_t *cur = head_pntr;
-    while( (cur -> next) != NULL){
-        printf("Hex code: 0x%02X, Decimal: %d, Count: %d\n", cur -> c ,cur -> c, cur -> count);
-        cur = cur -> next;
+    int i;
+    char * code;
+    for( i = 0 ; i < (HIST_TABLE_SIZE - 1) ; i++ ){
+        if (code_table[i] == NULL){
+            continue;
+        }
+        else{
+            code = code_table[i];
+            printf("0x%02X: %s\n", i , code);
+        } 
     }
+}
+
+
+/*------------------------------------------------------------------------------
+* Function: open_file
+*
+* Description: 
+*
+* param:
+*-----------------------------------------------------------------------------*/
+FILE *open_file(int cur, int argc, char **argv ){
+    FILE *file;
+    
+    while( !(file = fopen(argv[cur],"r")) ){ /* Check for successful
+                                                        opening */
+        perror(argv[argc]); /* Find the next file that can be opened */
+        argc++; /* Inc to check if there is a next argument */
+        if ( (argc-cur) < 1){
+            file = NULL; /* Last file in list could not be opene*/
+            break;
+        }
+    }
+    return file;
 }
 
 /*------------------------------------------------------------------------------
@@ -53,24 +83,34 @@ void print_output( void ){
 *-----------------------------------------------------------------------------*/
 
 int main( int argc, char *argv[] ){
-    int c;
-    /*node_t * head_pntr;*/
-
+    int c, i = 1;
+    FILE * file;
    /* init();*/ /* Initialize global variable */
+    while( i < argc){
+        file = open_file(i, argc, argv);
 
-    while( (c = fgetc(stdin)) ){
-        if (!feof(stdin)){
-            c = (unsigned char) c;
-            count_chars(c);
-        }
-        else{
-            perror("End of file, or file error");
+        if( file == NULL){
             break;
         }
+
+        while( (c = fgetc(file)) ){
+            if (!feof(file)){
+                c = (unsigned char) c;
+                count_chars(c);
+            }
+            else{
+                break;
+            }
+        }
+        if( fclose(file) ){
+            perror("fclose");
+        }
+        i++;
     }
     create_list();
+    create_tree();
+    collect_codes();
     print_output();
-
-    exit(EXIT_SUCCESS );
-
+    
+    return 0;
 }

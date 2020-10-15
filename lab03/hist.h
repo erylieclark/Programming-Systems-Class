@@ -32,7 +32,7 @@ struct node{
 void count_chars( unsigned char c );
 int compare_char( node_t *first, node_t *second );
 int compare_count( node_t *first, node_t *second );
-node_t *create_new_node( char c, int count );
+node_t *create_new_leaf( char c, int count );
 void insert_head( node_t *, node_t * );
 void insert_between( node_t *prev, node_t *new, node_t *cur );
 void insert_node( node_t *prev, node_t *new, node_t *cur );
