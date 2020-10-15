@@ -21,7 +21,7 @@ node_t * head_pntr;
 * param: c - the char whos count should be incremented
 *-----------------------------------------------------------------------------*/
 void count_chars( unsigned char c ){
-    hist_table[c] += 1; /* Add one to the count for the corresponding char */    
+    hist_table[c] += 1; /* Add one to the count for the corresponding char*/    
 }
 /*------------------------------------------------------------------------------
 * Function: compare_char
@@ -106,7 +106,7 @@ void insert_head(node_t *new, node_t *cur){
 *   the appropriate two nodes passed to the function.
 *
 * return: head_pntr - a pointer to the start of the list
-*----------1-------------------------------------------------------------------*/
+*-----------------------------------------------------------------------------*/
 void insert_between( node_t *prev, node_t *new, node_t *cur ){
     prev -> next = new;
     new -> next = cur;
@@ -185,7 +185,8 @@ void create_list( void ){
         else{
             new_node_pntr = create_new_leaf( i , hist_table[i] );
             add_to_list(new_node_pntr);
-            printf("Hex: 0x%02X, Count = %d\n", new_node_pntr -> c, new_node_pntr -> count);
+            /*printf("Hex: 0x%02X, Count = %d\n", new_node_pntr -> c,
+                \ new_node_pntr -> count);*/
         }
     }
     return;

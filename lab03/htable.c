@@ -92,15 +92,11 @@ int main( int argc, char *argv[] ){
         if( file == NULL){
             break;
         }
-
-        while( (c = fgetc(file)) ){
-            if (!feof(file)){
-                c = (unsigned char) c;
-                count_chars(c);
-            }
-            else{
-                break;
-            }
+        c = fgetc(file);
+        while( !feof(file) ){
+            c = (unsigned char) c;
+            count_chars(c);
+            c = fgetc(file);
         }
         if( fclose(file) ){
             perror("fclose");

@@ -89,7 +89,7 @@ void step_tree( char * code, node_t *node_pntr, int count){
     }
     else{ /* There is a left node to check */
         code[count] = '0'; /* Dropping into left branch, add a zero to code */
-        step_tree( code , node_pntr -> left , (count + 1) ); /* Call func again */
+        step_tree( code , node_pntr -> left , (count + 1) ); /* Call again */
     }
     
     /* Now check the right pointer */
@@ -103,7 +103,7 @@ void step_tree( char * code, node_t *node_pntr, int count){
     }
     else{ /* There is a right node to check */
         code[count] = '1'; /* Dropping into right branch, add a one to code */
-        step_tree( code, node_pntr -> right, (count + 1) ); /* Call func again */
+        step_tree( code, node_pntr -> right, (count + 1) ); /* Call again */
     }
     return;
 }
