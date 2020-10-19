@@ -26,6 +26,11 @@ node_t *create_new_node( void ){
     node_t * right = head_pntr -> next;
     
     new_node_pntr = (node_t *) malloc(sizeof(node_t)); /* Allocate node space */
+    if( !new_node_pntr ){ /* Check return value */
+        perror("malloc new node\n");
+        exit( EXIT_FAILURE ); /* Exit if malloc failed */
+    }
+
     /* Initialize its values */
     new_node_pntr -> c = -1; /* To indicate not an actual char leaf */
     new_node_pntr -> count = (left -> count) + (right -> count);
@@ -64,6 +69,10 @@ void create_tree( void ){
 *-----------------------------------------------------------------------------*/
 void add_code_to_array(char * code, int count, unsigned char c){
     code_table[c] = (char *) malloc( sizeof(char) * count );
+    if( !code_table[c] ){ /* Check return value */
+        perror("malloc string into code array\n");
+        exit( EXIT_FAILURE ); /* Exit if malloc failed */
+    }
     code_table[c] = strncpy( code_table[c], code, count );
     return;
 }
@@ -119,6 +128,10 @@ void collect_codes( void ){
     char * huff_code = (char *) malloc( sizeof(char) * HIST_TABLE_SIZE );
         /* Allocate a string that will hold the binary codes - this is the
             largest it will ever be */
+    if( !huff_code ){ /* Check return value */
+        perror("malloc string for collecting huffman code from tree\n");
+        exit( EXIT_FAILURE ); /* Exit if malloc failed */
+    }
     
     if ( node_pntr == NULL){
         return; /* The file was empty */
@@ -127,7 +140,3 @@ void collect_codes( void ){
     step_tree( huff_code, node_pntr, count);
     return;
 }
-
-
-
-

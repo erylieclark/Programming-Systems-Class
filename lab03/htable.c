@@ -17,16 +17,6 @@
 #include "huff_tree.h"
 
 /*------------------------------------------------------------------------------
-* Function: init
-*
-* Description: Some simple initilizing of global variables.
-*
-*-----------------------------------------------------------------------------*/
-/*void init(void){
-    hist_table[HIST_TABLE_SIZE] = {0};
-}
-*/
-/*------------------------------------------------------------------------------
 * Function: print_output
 *
 * Description: This function will take an array of pointers to strings and 
@@ -42,10 +32,10 @@ void print_output( void ){
     char * code;
     for( i = 0 ; i < (HIST_TABLE_SIZE - 1) ; i++ ){
         if (code_table[i] == NULL){
-            continue;
+            continue; /* Skip if the entry is empty */
         }
         else{
-            code = code_table[i];
+            code = code_table[i]; /* print the corresponding string */
             printf("0x%02X: %s\n", i , code);
         } 
     }
@@ -77,9 +67,8 @@ FILE *open_file(int cur, int argc, char **argv ){
 /*------------------------------------------------------------------------------
 * Function: main
 *
-* Description: 
-*
-* param:
+* Description: main simply handles the file reading and then calls the 
+*   remainder of the functions.
 *-----------------------------------------------------------------------------*/
 
 int main( int argc, char *argv[] ){
@@ -103,9 +92,9 @@ int main( int argc, char *argv[] ){
         }
         i++;
     }
-    create_list();
-    create_tree();
-    collect_codes();
+    create_list(); /* Initial linked list */
+    create_tree(); /* Readjust list into tree */
+    collect_codes(); /* Go through the tree and collect codes for each char */
     print_output();
     
     return 0;
