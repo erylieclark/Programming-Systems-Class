@@ -16,8 +16,8 @@ TESTDIR = $(PWD)/inputs
 TESTINPUTS = $(TESTDIR)/*
 TESTEXPECT = $(TESTDIR)/outputs/*
 MAIN = hencode
-OBJ = $(MAIN).o handle_input.o read_write.o hist.o huff_tree.o
-DEPS = handle_input.h read_write.h hist.h huff_tree.h
+OBJ = $(MAIN).o handle_input.o read_write.o hist.o huff_tree.o write_huff.o
+DEPS = handle_input.h read_write.h hist.h huff_tree.h write_huff.h
 all: $(MAIN)
 
 $(MAIN): $(OBJ) # Create uniq out of the listed object files
@@ -36,7 +36,7 @@ memcheck: $(MAIN)
 
 .PHONY: debug
 debug: $(MAIN)
-	gdb --args ./$< inputs/00_empty
+	gdb --args ./$< inputs/09_sample outfile
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"
