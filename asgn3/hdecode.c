@@ -1,8 +1,8 @@
 /*******************************************************************************
-* hencode.c
+* hdecode.c
 *
-* Description: This program will take in a file or input from stdin and and
-*   compress it using the huffman coding technique.
+* Description: This program will take in a file or input from stdin and 
+*   uncompress it.
 *
 * Author: Erin Rylie Clark
 *
@@ -18,7 +18,7 @@
 #include "read_write.h"
 #include "hist.h"
 #include "huff_tree.h"
-#include "write_huff.h"
+#include "read_huff.h"
 
 /*------------------------------------------------------------------------------
 * Function: print_output
@@ -52,35 +52,26 @@ void print_output( void ){
 *-----------------------------------------------------------------------------*/
 
 int main( int argc, char *argv[] ){
-    int num_bytes;
-    int i;
+    int i, total_chars;
     unsigned char uniq_bytes;
     /* Read input and open files to read and write from */
-    parse_input_encode( argc, argv );
-    /* Read a portion of the file into the buffer and count its chars */
-    while( (num_bytes = read_buffer() ) != 0 ){
-        i = 0; /* Start at beginning of buffer */
-        while( i < num_bytes ){
-            count_chars( readbuf[i] );
-            i++;
-        }
-        if( num_bytes == BUFFER_SIZE ) /* Filled the read buffer */
-            ; /* Continue the loop and read another portion of the file */
-        else if( num_bytes < BUFFER_SIZE )
-            break; /* Reached end of file before filling the read buffer */
-    }
-    uniq_bytes = create_list(); /* Create the initial huffman linked list and
-        pass back the number of uniq bytes in the hist table */
+    parse_input_decode( argc, argv );
+    /* Read the header and create the histogram table */
+    read_header();
+    /* Create the initial huffman linked list and pass back the number of uniq
+        bytes in the hist table */
+    uniq_bytes = create_list(); 
     /* If the file has no unique bytes, return an empty file and exit */
     if( uniq_bytes == 0){ /* REMINDER: RETURN EMPTY FILE */
-        printf("The file is empty.");
+        printf("The file is empty.\n");
         exit( EXIT_SUCCESS );
     }
+    /* Add up the total number of characters */
+    for( i = 0 ; i < HIST_TABLE_SIZE ; i++ ){
+        total_chars += hist_table[i];
+    }
     create_tree(); /* Readjust list into tree */
-    collect_codes(); /* Go through tree and collect code for each char */
-    print_output();
-    write_header_into_buffer( uniq_bytes );
-    write_body();
-
+    /* print_output(); */
+    find_leaves_and_write( total_chars );
     return 0;
 }

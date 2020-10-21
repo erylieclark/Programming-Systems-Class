@@ -15,13 +15,17 @@ CFLAGS = -Wall -g -ansi -pedantic # Flags used at compile time
 TESTDIR = $(PWD)/inputs
 TESTINPUTS = $(TESTDIR)/*
 TESTEXPECT = $(TESTDIR)/outputs/*
-MAIN = hencode
-OBJ = $(MAIN).o handle_input.o read_write.o hist.o huff_tree.o write_huff.o
-DEPS = handle_input.h read_write.h hist.h huff_tree.h write_huff.h
+MAIN = hencode hdecode
+OBJ = handle_input.o read_write.o hist.o huff_tree.o\
+ write_huff.o read_huff.o
+DEPS = handle_input.h read_write.h hist.h huff_tree.h write_huff.h read_huff.h
 all: $(MAIN)
 
-$(MAIN): $(OBJ) # Create uniq out of the listed object files
-	$(LD) -o $@ $(OBJ)
+hencode: hencode.o $(OBJ) # Create uniq out of the listed object files
+	$(LD) -o $@ $^
+
+hdecode: hdecode.o $(OBJ) # Create uniq out of the listed object files
+	$(LD) -o $@ $^
 
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -30,13 +34,21 @@ $(MAIN): $(OBJ) # Create uniq out of the listed object files
 clean: 
 	rm -f $(OBJ)
 
-.PHONY: memcheck
-memcheck: $(MAIN)
+.PHONY: memcheck_enc
+memcheck_enc: hencode
 	valgrind -s --leak-check=yes --track-origins=yes ./$< < $(TESTDIR)/02_twochar
 
-.PHONY: debug
-debug: $(MAIN)
+.PHONY: memcheck_dec
+memcheck_dec: hdecode
+	valgrind -s --leak-check=yes --track-origins=yes ./$< < $(TESTDIR)/02_twochar
+
+.PHONY: debug_enc
+debug_enc: hencode
 	gdb --args ./$< inputs/09_sample outfile
+
+.PHONY: debug_dec
+debug_dec: hdecode
+	gdb --args ./$< outfile outfile.dec
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"

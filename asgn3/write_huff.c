@@ -17,13 +17,14 @@
 *
 * param: uniq_bytes - the number of characters that have a count of at least 1
 *-----------------------------------------------------------------------------*/
-void write_header_into_buffer( int uniq_bytes ){
+void write_header_into_buffer( unsigned char uniq_bytes ){
     int loc = 0; /* Location to write in buffer */
     int write_bytes = 0; /* Number of bytes to be written to output */
     int i; /* Character to store in the header */
     /* First write the number of unique bytes -1 */
     writebuf[loc] = uniq_bytes - 1;
     /* Now start writing in the bytes and their counts */
+    write_bytes++;
     loc++; /* Start writing in next spot */
     for( i = 0 ; i < HIST_TABLE_SIZE ; i++ ){
         if( hist_table[i] == 0 ){
@@ -127,8 +128,27 @@ void write_body( void ){
         else if( read_bytes < BUFFER_SIZE )
             break; /* Reached end of file before filling read buffer */
     }
+    if( bit_count < BIT_COUNT_MAX ){
+        pad_bits( loc , bit_count ); /* Pad remaining bits in last byte */
+    }
+
     write_buffer( write_bytes );
         /* Finish by writing the remainder of the buffer to output */
+}
+
+/*------------------------------------------------------------------------------
+* Function: pad_bits 
+*
+* Description: write a 0 to the remaining bits in the last byte of the 
+*   compressed file
+* param: loc - the byte to write to
+* param: bit_count - the bit to write to... bit 01234567...
+*-----------------------------------------------------------------------------*/
+void pad_bits( int loc, unsigned char bit_count ){
+    while ( bit_count < BIT_COUNT_MAX ){
+        wr_bit_0( loc, bit_count );
+        bit_count++;
+    }
 }
 
 /*------------------------------------------------------------------------------
@@ -171,8 +191,4 @@ char * get_bin_code( unsigned char c ){
     char *bin_code_pntr = code_table[c];
     return bin_code_pntr;
 }
-
-
-
-
 

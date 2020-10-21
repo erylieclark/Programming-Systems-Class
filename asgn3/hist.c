@@ -180,10 +180,10 @@ void add_to_list( node_t * new_node_pntr ){
 *
 * return: head_pntr - a pointer to the start of the list
 *-----------------------------------------------------------------------------*/
-int create_list( void ){
+unsigned char create_list( void ){
     node_t * new_node_pntr = NULL;
     int i;
-    int uniq_bytes = 0; /* Initialize as no unique bytes */
+    unsigned char uniq_bytes = 0; /* Initialize as no unique bytes */
     for( i = 0 ; i < HIST_TABLE_SIZE ; i++ ){
         if (hist_table[i] == 0){ /* The entry has a count of 0 */
             continue; /* Do not make a node for it if it has no count */
@@ -191,8 +191,8 @@ int create_list( void ){
         else{ /* The entry has a count. Make a new node and add to list */
             new_node_pntr = create_new_leaf( i , hist_table[i] );
             add_to_list(new_node_pntr); 
-            printf("Hex: 0x%02x, Count = %d\n", new_node_pntr -> c, \
-                new_node_pntr -> count);
+           /* printf("Hex: 0x%02x, Count = %d\n", new_node_pntr -> c, \
+                new_node_pntr -> count); */
             uniq_bytes++; /* Increment uniq bytes with each new node */
         }
     }
