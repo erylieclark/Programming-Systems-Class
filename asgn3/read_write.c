@@ -1,4 +1,3 @@
-
 /*******************************************************************************
 * Filename: read_write.c
 *
@@ -9,6 +8,8 @@
 
 #include "read_write.h"
 #include "handle_input.h"
+
+/* Global Variables */
 unsigned char readbuf[BUFFER_SIZE];
 unsigned char writebuf[BUFFER_SIZE];
 
@@ -27,8 +28,7 @@ int read_buffer( void ){
     int num_bytes = read( readfd, readbuf, BUFFER_SIZE );
     if( num_bytes == -1 ){
         perror("Read into buffer\n");
-        exit( EXIT_FAILURE ); /* REMINDER: DO SOME EXTRA HANDLING HERE? */
-    /* REMINDER: MAY NEED TO HANDLE THE CASE OF ZERO BYTES READ */
+        exit( EXIT_FAILURE ); 
     }
     return num_bytes;
 }
@@ -36,9 +36,8 @@ int read_buffer( void ){
 /*------------------------------------------------------------------------------
 * Function: write_buffer 
 *
-* Description: This function will write the specified number of bytes and 
-*   store them into the write buffer. It will return the number of bytes that
-*   write(2) actually reads.
+* Description: This function will write the specified number of bytes to the 
+*   output. It will return the number of bytes that write(2) actually writes.
 * 
 * param: num_bytes - the number of bytes that need to be written
 * param: writefd - is a global variable, so it will not be passed, but it will
@@ -46,17 +45,14 @@ int read_buffer( void ){
 * return: num_bytes - the number of bytes written by the write function
 *-----------------------------------------------------------------------------*/
 int write_buffer( int num_bytes ){
-    int i = 0;
-/*    while( i < num_bytes){
-        printf("0x%02X\n", writebuf[i]);
-        i++;
-    }
-*/
+    
     num_bytes = write( writefd, writebuf, num_bytes );
+    
     if( num_bytes == -1 ){
-        perror("Write into buffer\n");
-        exit( EXIT_FAILURE ); /* REMINDER: DO SOME EXTRA HANDLING HERE? */
+        perror("Write to output\n");
+        exit( EXIT_FAILURE );
     }
+    
     return num_bytes;
 }
 

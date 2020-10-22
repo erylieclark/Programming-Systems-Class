@@ -5,7 +5,6 @@
 *   character from the input and creating an ordered linked list.
 *
 * Author: Erin Rylie Clark
-*
 *******************************************************************************/
 
 #ifndef _HIST_H
@@ -16,9 +15,12 @@
 #include <stdlib.h>
 
 #define HIST_TABLE_SIZE 256
+
+/* Global Variable */
 extern int hist_table[HIST_TABLE_SIZE]; /* Array containg frequency of c */
 extern struct node * head_pntr;
 
+/* The node structure */
 typedef struct node node_t;
 struct node{
     int c;
@@ -39,4 +41,4 @@ void insert_node( node_t *prev, node_t *new, node_t *cur );
 void add_to_list ( node_t *new_node_pntr );
 int create_list( void );
 
-#endif
+#endif /* _HIST_H */

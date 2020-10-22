@@ -2,7 +2,7 @@
 * Filename: handle_input.c
 *
 * Description: This file is mainly for checking that the user entered valid
-*   arguments and opens the files if they are valid. This file will be the
+*   arguments and attempts to opens the files. This file will be the
 *   source of any errors related not being able to open the files. If the files
 *   are valid, a global file descriptor will be set to the appropriate place.
 *
@@ -10,19 +10,23 @@
 *******************************************************************************/
 
 #include "handle_input.h"
+
 int readfd; /* Gloabl variable for read file descriptor */
 int writefd; /* Gloabl variable for write file descriptor */
+
 /*------------------------------------------------------------------------------
-* Function: parse_input
+* Function: parse_input_encode
 *
-* Description: Read the input from the user. If none specified, error and exit.
-*   Attempt to open input file. If no output file is specified, read from
-*   stdout. If the output file specified is not there, create it. If it is there
-*   truncate it. The open_file function will take care of the necessary
-*   error handling related to opening the file.
+* Description: encode requires at least one input: Read the input from the user.
+*   If none specified, error and exit. If  there is at least one, attempt to
+*   open the input file. If no output file is specified, read from stdout. If
+*   the output file specified is not there, create it. If it is there truncate
+*   it. The open_file function will take care of the necessary error handling
+*   related to opening the file.
 *
 * param: argc - # of inputs from the user
 * param: argv - array of inputs from the user
+* return: no return - the read and write global file descriptors are set
 *-----------------------------------------------------------------------------*/
 void parse_input_encode( int argc, char **argv ){
     /* First check if there are too many or too few inputs */ 
@@ -51,14 +55,15 @@ void parse_input_encode( int argc, char **argv ){
 /*------------------------------------------------------------------------------
 * Function: parse_input_decode
 *
-* Description: Read the input from the user, if none specified, read/write from
-*   stdin/stdout. If "-" is specified, read from stdin. Otherwise, attempt to
-*   open the files. If the output file is not there, create it. If it is there,
-*   truncate it. The open_file function will take care of the necessary
-*   error handling related to to opening the file.
+* Description: decode does not require any inputs: Read the input from the user,
+*   if none specified, read/write from stdin/stdout. If "-" is specified, read
+*   from stdin. Otherwise, attempt to open the files. If the output file is not
+*   there, create it. If it is there, truncate it. The open_file function will
+*   take care of the necessary error handling related to to opening the file.
 *
 * param: argc - # of inputs from the user
 * param: argv - array of inputs from the user
+* return: no return - the read and write global file descriptors are set
 *-----------------------------------------------------------------------------*/
 void parse_input_decode( int argc, char **argv ){
     /* First check if there are too many inputs */ 
@@ -74,19 +79,21 @@ void parse_input_decode( int argc, char **argv ){
             readfd = STDIN_FILENO;
             writefd = STDOUT_FILENO;
             break;
-        case MIN_INPUTS: /* Input give, but no output */
-            if( *argv == '-' ) /* If no file specified, read from stdin */
+        case MIN_INPUTS: /* Input given, but no output */
+            if( *argv[INPUT_F] == '-' ) /* No file specified, read from stdin */
                 readfd = STDIN_FILENO;
             else /* Otherwise try to open the file */
                 readfd = open_file( argv[INPUT_F], READ_F);
             writefd = STDOUT_FILENO; /* Min args given, write to stdout */
+            break;
         case MAX_INPUTS: /* Input and output given */
-            if( *argv == '-' ) /* If no file specified, read from stdin */
+            if( *argv[INPUT_F] == '-' ) /* No file specified, read from stdin */
                 readfd = STDIN_FILENO;
             else /* Otherwise try to open the file */
                 readfd = open_file( argv[INPUT_F], READ_F);
             writefd = open_file( argv[OUTPUT_F], WRITE_F );
                 /* Attempt to open the output file */
+            break;
     }
     return;
 }
@@ -96,6 +103,7 @@ void parse_input_decode( int argc, char **argv ){
 *
 * Description: This function opens the file and returns a file descriptor if
 *   successful, and produces an error if not.
+*
 * param: argv - the file to attempt to open
 * param: mode - the way to open the file - mainly read, write, or read/write.
 * 

@@ -10,6 +10,7 @@
 #ifndef _READ_HUFF_H
 #define _READ_HUFF_H
 
+/* Standard Header Files */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,14 +20,15 @@
 #include <unistd.h>
 #include <stdint.h>
 
+/* Local Header Files */
 #include "read_write.h"
 #include "hist.h"
 #include "huff_tree.h"
 #include "handle_input.h"
 
 #define BYTE_SET 5 /* Number of bytes in a char and int pair for the header */
-#define ONE_BYTE 8
-#define BIT_COUNT_MAX 8
+#define ONE_BYTE 8 /* Bits in byte */
+#define BIT_COUNT_MAX 8 /* Bits in byte */
 
 void read_header( void );
 int read_4_byte_int( int loc );

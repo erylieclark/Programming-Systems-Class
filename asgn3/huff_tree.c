@@ -7,16 +7,18 @@
 * Author: Erin Rylie Clark
 *
 *******************************************************************************/
+
 #include "huff_tree.h"
 #include "hist.h"
 
-char *code_table[HIST_TABLE_SIZE];
+char *code_table[HIST_TABLE_SIZE]; /* Global */
+
 /*------------------------------------------------------------------------------
 * Function: create_new_node
 *
 * Description: This function creates a new node that will store the count of
-*   the first two nodes in the list, set the head pointer to the third node,
-*   and pass back a pointer to the new node.
+*   the first two nodes in the linked list, set the head pointer to the third
+*   node, and pass back a pointer to the new node.
 *
 * return: new_node_pntr - a pointer to the new node
 *-----------------------------------------------------------------------------*/
@@ -34,7 +36,7 @@ node_t *create_new_node( void ){
     /* Initialize its values */
     new_node_pntr -> c = -1; /* To indicate not an actual char leaf */
     new_node_pntr -> count = (left -> count) + (right -> count);
-        /* new node has the sum of its child nodes */
+        /* New node has the sum of its child nodes */
     new_node_pntr -> next = NULL; /* Set null before inserting back into list */
     new_node_pntr -> left = left;
     new_node_pntr -> right = right;
@@ -45,27 +47,30 @@ node_t *create_new_node( void ){
     
     return new_node_pntr;
 }
+
 /*------------------------------------------------------------------------------
 * Function: create_tree
 * 
-* Description: This function will take the linked list and create the tree
+* Description: This function will take the linked list and create the tree by
+*   creating a new parent node for the first two nodes in the list, and placing
+*   the parent node back into the list where it belongs.
 *-----------------------------------------------------------------------------*/
 void create_tree( void ){
     node_t * new_node_pntr;
     if( head_pntr == NULL){
         return; /* The file was empty */
     }
-    while ( (head_pntr -> next) != NULL){
+    while ( (head_pntr -> next) != NULL){ /* while not at end of list */
         new_node_pntr = create_new_node();
         add_to_list( new_node_pntr );
     }
-    return;
 }
+
 /*------------------------------------------------------------------------------
 * Function: add_code_to_array
 * 
-* Description: This function will allocate space for the huffman code and give
-*   the pointer to the appropriate spot in the code_table.
+* Description: This function will allocate space for the huffman code (a string)
+*   and give the pointer to the appropriate spot in the code_table.
 *-----------------------------------------------------------------------------*/
 void add_code_to_array(char * code, int count, unsigned char c){
     code_table[c] = (char *) malloc( sizeof(char) * count );
@@ -73,16 +78,15 @@ void add_code_to_array(char * code, int count, unsigned char c){
         perror("malloc string into code array\n");
         exit( EXIT_FAILURE ); /* Exit if malloc failed */
     }
+    /* Copy the string and place the char pointer into the array */
     code_table[c] = strncpy( code_table[c], code, count );
-    return;
 }
 
 /*------------------------------------------------------------------------------
 * Function: step_tree
 * 
 * Description: This function will go through all of the branches of the tree
-*   to get the huffman code associated with each leaf.
-* Issues: checking the character against a zero could be misleading...
+*   to get the huffman code associated with each leaf. It is a recursive funtion
 *-----------------------------------------------------------------------------*/
 void step_tree( char * code, node_t *node_pntr, int count){
     
@@ -138,5 +142,4 @@ void collect_codes( void ){
     }
     
     step_tree( huff_code, node_pntr, count);
-    return;
 }

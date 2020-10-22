@@ -10,21 +10,23 @@
 #include "read_write.h"
 
 /*------------------------------------------------------------------------------
-* Function: write_header 
+* Function: write_header_into_buffer
 *
 * Description: step through the histogram table and write out the characters
 *   and their corresponding counts to the header of the compressed file.
 *
 * param: uniq_bytes - the number of characters that have a count of at least 1
 *-----------------------------------------------------------------------------*/
-void write_header_into_buffer( unsigned char uniq_bytes ){
+void write_header_into_buffer( int uniq_bytes ){
     int loc = 0; /* Location to write in buffer */
     int write_bytes = 0; /* Number of bytes to be written to output */
     int i; /* Character to store in the header */
+
     /* First write the number of unique bytes -1 */
     writebuf[loc] = uniq_bytes - 1;
+
     /* Now start writing in the bytes and their counts */
-    write_bytes++;
+    write_bytes++; /* Count the number of bytes already in buffer */
     loc++; /* Start writing in next spot */
     for( i = 0 ; i < HIST_TABLE_SIZE ; i++ ){
         if( hist_table[i] == 0 ){
@@ -73,25 +75,26 @@ void write_4_byte_int( int loc,  uint32_t count ){
 * Description: This function will write out the bitstream of each character in
 *   the file. It will first store them into the writebuf buffer and then write
 *   the buffer to the output file.
-* 
-* param: loc - the location to start writing the four bytes
-* param: count - the 32 bit unsigned integer representing the count of the char
 *-----------------------------------------------------------------------------*/
 void write_body( void ){
-    int read_bytes;
-    int write_bytes = 0;
-    int loc = 0;
+    int read_bytes; /* Bytes read from read(2) */
+    int write_bytes = 0; /* Number of bytes written to writebuf */
+    int loc = 0; /* Location to write to */
     int i;
-    char *bin_code_pntr;
-    unsigned char bit_count = 0;
+    char *bin_code_pntr; /* Pointer to the binary code string in code_table */
+    unsigned char bit_count = 0; /* Bit to write to in byte */
+
     /* First seek back to the beginning of the input file to read from the 
         beginning */
     lseek( readfd, 0, SEEK_SET );
+
     /* Begin reading the characters and enter their bitstream */
     while( (read_bytes = read_buffer() ) != 0 ){ /* Read chunk from file */
         i = 0; /* Start at beginning of buffer */
+
         while( i < read_bytes ){ /* Still chars in the buffer to read */
             bin_code_pntr = get_bin_code( readbuf[i] ); 
+
             while( *bin_code_pntr != '\0' ){ /* Go until end of bin code */
                 if( *bin_code_pntr == '0' ){
                     wr_bit_0( loc, bit_count );
@@ -101,10 +104,11 @@ void write_body( void ){
                     wr_bit_1( loc, bit_count );
                     bit_count++; /* Increase after writing the bit */
                 }
-                else{
+                else{ /* Theoretically shouldn't get here */
                     fprintf(stderr, "Invalid binary value.\n");
                     exit( EXIT_FAILURE );
                 }
+
                 if( bit_count == BIT_COUNT_MAX ){ /* At end of current byte */
                     bit_count = 0; /* Reset to start at beginning of new byte */
                     loc++; /* Write to next byte */
@@ -119,15 +123,18 @@ void write_body( void ){
                                             buffer */
                     }
                 }
-                bin_code_pntr++;
+                bin_code_pntr++; /* Get the next "bit" in the bin code string */
             }
             i++;
         }
+
         if( read_bytes == BUFFER_SIZE ) /* Filled the read buffer */
             ; /* Continue the loop and read another portion of the input file */
         else if( read_bytes < BUFFER_SIZE )
             break; /* Reached end of file before filling read buffer */
     }
+    
+    /* If the last byte to write to is not filled up, pad it with zeros */
     if( (bit_count < BIT_COUNT_MAX) && (bit_count != 0) ){
         pad_bits( loc , bit_count ); /* Pad remaining bits in last byte */
         write_bytes++;
@@ -170,6 +177,7 @@ void wr_bit_0( int loc, unsigned char bit_count ){
 * Function: wr_bit_1 
 *
 * Description: write a 1 to the correct position in the location provided
+*
 * param: loc - the byte to write to
 * param: bit_count - the bit to write to... bit 01234567...
 *-----------------------------------------------------------------------------*/

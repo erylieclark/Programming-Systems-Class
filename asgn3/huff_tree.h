@@ -14,10 +14,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
 #include "hist.h"
 
 extern char * code_table[HIST_TABLE_SIZE]; /* Array containg frequency of c */
-
 
 node_t *create_new_node( void );
 void create_tree( void );
@@ -25,4 +25,4 @@ void add_code_to_array( char *code, int count, unsigned char c );
 void step_tree( char *code, node_t *head_pntr, int count);
 void collect_codes( void );
 
-#endif
+#endif /* _HUFF_TREE_H */

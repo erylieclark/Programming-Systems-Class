@@ -10,6 +10,7 @@
 #ifndef _WRITE_HUFF_H
 #define _WRITE_HUFF_H
 
+/* Standard Headers Files */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,13 +20,15 @@
 #include <unistd.h>
 #include <stdint.h>
 
+/* Local Header Files */
 #include "read_write.h"
 #include "hist.h"
 #include "huff_tree.h"
 #include "handle_input.h"
 
+
 #define BYTE_SET 5 /* Number of bytes in a char and int pair for the header */
-#define BIT_COUNT_MAX 8
+#define BIT_COUNT_MAX 8 /* Bits in a byte */
 
 void write_header_into_buffer( unsigned char uniq_bytes );
 void write_4_byte_int( int loc, uint32_t c );

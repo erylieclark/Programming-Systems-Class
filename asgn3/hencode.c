@@ -1,8 +1,9 @@
 /*******************************************************************************
 * hencode.c
 *
-* Description: This program will take in a file or input from stdin and and
-*   compress it using the huffman coding technique.
+* Description: hencode is meant to be used as a file compression program. It
+*   will take in a file or read from stdin and produce a huffman compressed
+*   version of the file to a specified file, or to stdout.
 *
 * Author: Erin Rylie Clark
 *
@@ -23,14 +24,11 @@
 /*------------------------------------------------------------------------------
 * Function: print_output
 *
-* Description: This function will take an array of pointers to strings and 
-*   print out the hex value of each character in the file given by the user
-*   along with its corresponding huffman code.
-*
-* param: array - the array that holds the pointers to characters
-*
+* Description: This is mostly meant as a debugging feature in this program. 
+*   This function will take an array of pointers to strings and print out the
+*   hex value of each character in the file given by the user along with its
+*   corresponding huffman code. code_table is a global array.
 *-----------------------------------------------------------------------------*/
-
 void print_output( void ){
     int i;
     char * code;
@@ -47,22 +45,24 @@ void print_output( void ){
 /*------------------------------------------------------------------------------
 * Function: main
 *
-* Description: main simply calls the other functions to do their jobs in order.
-*
+* Description: main is written such that its main job is to call the other
+*   functions in the order that they are needed. It helps with reading input,
+*   and determines if the file is empty, but other than that, does very
+*   litte work. 
 *-----------------------------------------------------------------------------*/
 
 int main( int argc, char *argv[] ){
-    int num_bytes;
-    int i;
-    int uniq_bytes;
+    int num_bytes; /* number of bytes read from read(2) */
+    int loc; /* Location in the buffer to read from */
+    int uniq_bytes; /* Unique bytes in the file, not to be bigger than 256 */
     /* Read input and open files to read and write from */
     parse_input_encode( argc, argv );
     /* Read a portion of the file into the buffer and count its chars */
     while( (num_bytes = read_buffer() ) != 0 ){
-        i = 0; /* Start at beginning of buffer */
-        while( i < num_bytes ){
+        loc = 0; /* Start at beginning of buffer */
+        while( loc < num_bytes ){ /* Read until nothing left in buffer */
             count_chars( readbuf[i] );
-            i++;
+            loc++;
         }
         if( num_bytes == BUFFER_SIZE ) /* Filled the read buffer */
             ; /* Continue the loop and read another portion of the file */
@@ -72,15 +72,15 @@ int main( int argc, char *argv[] ){
     uniq_bytes = create_list(); /* Create the initial huffman linked list and
         pass back the number of uniq bytes in the hist table */
     /* If the file has no unique bytes, return an empty file and exit */
-    if( uniq_bytes == 0){ /* REMINDER: RETURN EMPTY FILE */
+    if( uniq_bytes == 0){
         printf("The file is empty.");
         exit( EXIT_SUCCESS );
     }
     create_tree(); /* Readjust list into tree */
     collect_codes(); /* Go through tree and collect code for each char */
-    print_output();
+    /*print_output();*/ /* Prints the codes for each char out to view */
     write_header_into_buffer( uniq_bytes );
-    write_body();
+    write_body(); /* Write the bitstream */
 
-    return 0;
+    return 0; /* Success */
 }

@@ -1,7 +1,8 @@
 /*******************************************************************************
 * Filename: read_write.h
 *
-* Description:
+* Description: This file deals with the direct systems calls for read and write.
+*   It handles errors as appropriate.
 *
 * Author: Erin Rylie Clark
 *******************************************************************************/
@@ -9,6 +10,7 @@
 #ifndef _READ_WRITE_H
 #define _READ_WRITE_H
 
+/* Standard Header Files */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +20,8 @@
 #include <unistd.h>
 
 #define BUFFER_SIZE 4096
+
+/* Global Variables */
 extern unsigned char readbuf[BUFFER_SIZE]; 
 extern unsigned char writebuf[BUFFER_SIZE];
 
