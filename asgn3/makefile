@@ -44,11 +44,11 @@ memcheck_dec: hdecode
 
 .PHONY: debug_enc
 debug_enc: hencode
-	gdb --args ./$< inputs/09_sample outfile
+	gdb --args ./$< inputs/hencode/01_onechar outfile.enc
 
 .PHONY: debug_dec
 debug_dec: hdecode
-	gdb --args ./$< outfile outfile.dec
+	gdb --args ./$< inputs/hdecode/01_onechar.huff outfile.dec
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"

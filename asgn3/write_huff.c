@@ -128,8 +128,9 @@ void write_body( void ){
         else if( read_bytes < BUFFER_SIZE )
             break; /* Reached end of file before filling read buffer */
     }
-    if( bit_count < BIT_COUNT_MAX ){
+    if( (bit_count < BIT_COUNT_MAX) && (bit_count != 0) ){
         pad_bits( loc , bit_count ); /* Pad remaining bits in last byte */
+        write_bytes++;
     }
 
     write_buffer( write_bytes );

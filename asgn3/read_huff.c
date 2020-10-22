@@ -93,7 +93,7 @@ char get_next_bit( int loc, unsigned char bit_count ){
 *
 * param: uniq_bytes - the number of characters in the header of the file
 *-----------------------------------------------------------------------------*/
-void find_leaves_and_write( int total_chars ){
+void find_leaves_and_write( int total_chars, unsigned char uniq_bytes ){
     unsigned char bit_count = 0; /* Start at MSB of the byte */
     int loc = 0; /* Read at beginning of readbuf */
     int wrloc = 0; /* Write to beginning of writebuf */
@@ -101,6 +101,14 @@ void find_leaves_and_write( int total_chars ){
     char bit;
     node_t *node_pntr = head_pntr;
     read_bytes = read_buffer(); /* Read the body into the read buffer */
+    if( uniq_bytes == 1 ){ /* There will not be any codes to the leaf */
+        while( total_chars > 0 ){
+            writebuf[wrloc] = node_pntr -> c;
+            wrloc++;
+            total_chars--;
+        }
+    }
+
     while( loc < read_bytes ){
         while( bit_count < BIT_COUNT_MAX ){
             bit = get_next_bit( loc, bit_count );

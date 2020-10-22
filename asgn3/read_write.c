@@ -47,10 +47,11 @@ int read_buffer( void ){
 *-----------------------------------------------------------------------------*/
 int write_buffer( int num_bytes ){
     int i = 0;
-    while( i < num_bytes){
+/*    while( i < num_bytes){
         printf("0x%02X\n", writebuf[i]);
         i++;
     }
+*/
     num_bytes = write( writefd, writebuf, num_bytes );
     if( num_bytes == -1 ){
         perror("Write into buffer\n");

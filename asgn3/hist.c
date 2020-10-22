@@ -180,10 +180,10 @@ void add_to_list( node_t * new_node_pntr ){
 *
 * return: head_pntr - a pointer to the start of the list
 *-----------------------------------------------------------------------------*/
-unsigned char create_list( void ){
+int create_list( void ){
     node_t * new_node_pntr = NULL;
     int i;
-    unsigned char uniq_bytes = 0; /* Initialize as no unique bytes */
+    int uniq_bytes = 0; /* Initialize as no unique bytes */
     for( i = 0 ; i < HIST_TABLE_SIZE ; i++ ){
         if (hist_table[i] == 0){ /* The entry has a count of 0 */
             continue; /* Do not make a node for it if it has no count */

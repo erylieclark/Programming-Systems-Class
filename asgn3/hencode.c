@@ -54,7 +54,7 @@ void print_output( void ){
 int main( int argc, char *argv[] ){
     int num_bytes;
     int i;
-    unsigned char uniq_bytes;
+    int uniq_bytes;
     /* Read input and open files to read and write from */
     parse_input_encode( argc, argv );
     /* Read a portion of the file into the buffer and count its chars */

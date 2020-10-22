@@ -72,6 +72,6 @@ int main( int argc, char *argv[] ){
     }
     create_tree(); /* Readjust list into tree */
     /* print_output(); */
-    find_leaves_and_write( total_chars );
+    find_leaves_and_write( total_chars, uniq_bytes );
     return 0;
 }
