@@ -33,7 +33,7 @@
 void read_header( void );
 int read_4_byte_int( int loc );
 char get_next_bit( int loc, unsigned char bit_count );
-void find_leaves_and_write( int total_chars, unsigned char uniq_bytes );
+void find_leaves_and_write( unsigned int total_chars, int uniq_bytes );
 int check_buffer( int loc );
 int check_for_leaf( node_t *node_pntr, int wrloc );
 

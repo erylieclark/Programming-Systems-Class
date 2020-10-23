@@ -20,6 +20,9 @@
 #include "huff_tree.h"
 #include "read_huff.h"
 
+/* Constants used in this file */
+#define INT_MAX (2^(sizeof(int)*8)) /* Values represented by unsigned int */
+
 /*------------------------------------------------------------------------------
 * Function: print_output
 *
@@ -42,6 +45,26 @@ void print_output( void ){
     }
 }
 /*------------------------------------------------------------------------------
+* Function: check_overflow
+*
+* Description: Check overflow is used to make sure that the unsigned integer
+*   that carries the total number of characters in the file does not exceed 
+*   the value that an unsigned int can carry. This function will produce an
+*   error if this happens and quit. The two reasons that overflow occurs are:
+*       1. The file is too large for the program to handle - this program is
+*           not currently made to handle files larger than an unsigned int can
+*           carry.
+*       2. The user tried to give the program an uncompressed file and the 
+*           values accidentally overflowed the unsigned integer.
+*-----------------------------------------------------------------------------*/
+void check_overflow( unsigned int total_chars, int char_count ){
+    if( (INT_MAX - char_count) < total_chars ){
+        printf("Error: File too big OR Uncompressed file given.\n");
+        exit( EXIT_FAILURE );
+    }
+}
+
+/*------------------------------------------------------------------------------
 * Function: main
 *
 * Description: main is written such that its main job is to call the other
@@ -51,7 +74,8 @@ void print_output( void ){
 *-----------------------------------------------------------------------------*/
 
 int main( int argc, char *argv[] ){
-    int i, total_chars;
+    int i;
+    unsigned int total_chars;
     int uniq_bytes;
 
     /* Read input and open files to read and write from */
@@ -73,6 +97,7 @@ int main( int argc, char *argv[] ){
     /* Add up the total number of characters for keeping track of how many
         left in the bit stream */
     for( i = 0 ; i < HIST_TABLE_SIZE ; i++ ){
+        check_overflow( total_chars, hist_table[i]); /* Will exit on overflow */
         total_chars += hist_table[i];
     }
 

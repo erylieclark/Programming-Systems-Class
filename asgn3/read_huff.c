@@ -22,7 +22,7 @@
 *   number of uniq_bytes indicated in the first byte.
 *-----------------------------------------------------------------------------*/
 void read_header( void ){
-    unsigned char uniq_bytes;
+    int uniq_bytes;
     int count = 0; /* count up to unique bytes to know when to stop */
     int loc = 0; /* Where to read from in readbuf */
     int c = 0; /* the character index */
@@ -34,8 +34,15 @@ void read_header( void ){
 
     /* Get the first byte containing the number of unique bytes */
     uniq_bytes = readbuf[loc];
+    
+    /* If the file has no unique bytes, return an empty file and exit */
+    if( uniq_bytes == 0){ 
+        printf("The file is empty, or huffman header indicated no unique bytes\
+ in file.\n");
+        exit( EXIT_SUCCESS );
+    }
     loc++; 
-
+    
     /* Now read five bytes, one to get the char, four to get its count */
     while( count <= uniq_bytes ){
         if( (offset = read_bytes - loc) < BYTE_SET ){
@@ -44,16 +51,27 @@ void read_header( void ){
                 read again to get the full 5 bytes together */
             lseek( readfd, -offset, SEEK_CUR );
             read_bytes = read_buffer();
+            if( read_bytes < BYTE_SET ){ /* Make sure we read enough to get
+                the next entry */
+                printf("Error: Not a huffman compressed file.\n");
+                printf("Not enough entries for claimed unique bytes.\n");
+                exit( EXIT_FAILURE );
+            }
             loc = 0; /* Read from start of new buffer */
         }
 
         c = readbuf[loc]; /* Get the character */
         loc++; /* read four byte integer from following location */
-        hist_table[c] = read_4_byte_int( loc );
+        if( hist_table[c] == 0){ /* The character hasnt reaceived a count yet */
+            hist_table[c] = read_4_byte_int( loc );
+        }
+        else{ /* Duplicating a char count - not a huffman compressed file */
+            printf("Error: Not a huffman compressed file.\n");
+            printf("Duplicate character in header.\n");
+            exit( EXIT_FAILURE );
+        }        
         count++; /* Keep track of how many entries (5 bytes) have been read */
         loc += 4; /* Account for the 4 byte integer read */
-        /* REMINDER: THERE IS AN ERROR TO ACCOUNT FOR HERE WHERE COUNT WILL
-            NOT HAVE REACHED UNIQUE BYTES BUT THERE IS NOTHING LEFT TO READ */
     }
     /* Set file descriptor back to beginning of body so the next function
         can read its own set of bytes. This is mostly to avoid passing 
@@ -110,7 +128,7 @@ char get_next_bit( int loc, unsigned char bit_count ){
 *   written based on the histogram table
 * param: uniq_bytes - the number of characters in the header of the file
 *-----------------------------------------------------------------------------*/
-void find_leaves_and_write( int total_chars, unsigned char uniq_bytes ){
+void find_leaves_and_write( unsigned int total_chars, int uniq_bytes){
     unsigned char bit_count = 0; /* Start at MSB of the byte */
     int loc = 0; /* Read at beginning of readbuf */
     int wrloc = 0; /* Write to beginning of writebuf */
@@ -167,10 +185,21 @@ void find_leaves_and_write( int total_chars, unsigned char uniq_bytes ){
         if( loc == read_bytes ){ /* at end of bytes */
             if( read_bytes == BUFFER_SIZE ){ /* need to read more bytes */
                 read_bytes = read_buffer();
+                if( read_bytes == 0 && total_chars > 0 ){
+                    /* Nothing left to read, but haven't written all chars yet.
+                        * Likely not a huffman compressed file */
+                    printf("Error: Not a huffman compressed file.\n");
+                    printf("Character count is larger than bitstream.\n");
+                    exit( EXIT_FAILURE );
+                }
                 loc = 0;
             }
-            else{
-                break; /* No more to read */
+            else if( read_bytes < BUFFER_SIZE && total_chars > 0 ){
+                /* Nothing left to read, but haven't written all chars yet.
+                    * Likely not a huffman compressed file */
+                printf("Error: Not a huffman compressed file.\n");
+                printf("Character count is larger than bitstream.\n");
+                exit( EXIT_FAILURE );
             }
         }
     }

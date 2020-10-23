@@ -30,7 +30,7 @@
 #define BYTE_SET 5 /* Number of bytes in a char and int pair for the header */
 #define BIT_COUNT_MAX 8 /* Bits in a byte */
 
-void write_header_into_buffer( unsigned char uniq_bytes );
+void write_header_into_buffer( int uniq_bytes );
 void write_4_byte_int( int loc, uint32_t c );
 void write_body( void );
 void pad_bits( int loc, unsigned char bit_count );

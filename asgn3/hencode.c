@@ -61,7 +61,7 @@ int main( int argc, char *argv[] ){
     while( (num_bytes = read_buffer() ) != 0 ){
         loc = 0; /* Start at beginning of buffer */
         while( loc < num_bytes ){ /* Read until nothing left in buffer */
-            count_chars( readbuf[i] );
+            count_chars( readbuf[loc] );
             loc++;
         }
         if( num_bytes == BUFFER_SIZE ) /* Filled the read buffer */
