@@ -31,16 +31,15 @@ void read_header( void ){
 
     /*Read a portion of the file into the buffer */
     read_bytes = read_buffer();
+    /* If the file does not have at least 6 bytes, there is an issue */
+    if( read_bytes <= BYTE_SET){ 
+        printf("Error: Not a huffman compressed file.\n");
+        printf("Not enough entries for claimed unique bytes.\n");
+        exit( EXIT_SUCCESS );
+    }
 
     /* Get the first byte containing the number of unique bytes */
     uniq_bytes = readbuf[loc];
-    
-    /* If the file has no unique bytes, return an empty file and exit */
-    if( uniq_bytes == 0){ 
-        printf("The file is empty, or huffman header indicated no unique bytes\
- in file.\n");
-        exit( EXIT_SUCCESS );
-    }
     loc++; 
     
     /* Now read five bytes, one to get the char, four to get its count */
@@ -137,13 +136,22 @@ void find_leaves_and_write( unsigned int total_chars, int uniq_bytes){
     node_t *node_pntr = head_pntr; /* Start at root of tree */
     
     read_bytes = read_buffer(); /* Read the body into the read buffer */
-    
-    if( uniq_bytes == 1 ){ /* There will not be any codes to the only char */
+    /* Read bytes will be zero if there is only one character in the file
+        because we have already read the header file and we are only reading
+        from the body now. One character does not map to a bitstream, so there
+        should be nothing left to read. If there is, it is an invalid file */
+    if( uniq_bytes == 1 && read_bytes == 0 ){
         while( total_chars > 0 ){ /* Write out the char up to its count */
             writebuf[wrloc] = node_pntr -> c;
             wrloc++;
             total_chars--; /* Keep track of how many left to write */
         }
+    }
+    else if( uniq_bytes == 1 && read_bytes > 0 ){
+        /* There are too many bytes in the file for its claimed unique bytes */
+        printf("Error: Not a huffman compressed file.\n");
+        printf("Too many entries for claimed unique bytes.\n");
+        exit( EXIT_FAILURE );
     }
 
     while( loc < read_bytes ){ /* If more than one char */

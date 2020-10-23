@@ -20,9 +20,6 @@
 #include "huff_tree.h"
 #include "read_huff.h"
 
-/* Constants used in this file */
-#define INT_MAX (2^(sizeof(int)*8)) /* Values represented by unsigned int */
-
 /*------------------------------------------------------------------------------
 * Function: print_output
 *
@@ -58,7 +55,11 @@ void print_output( void ){
 *           values accidentally overflowed the unsigned integer.
 *-----------------------------------------------------------------------------*/
 void check_overflow( unsigned int total_chars, int char_count ){
-    if( (INT_MAX - char_count) < total_chars ){
+    unsigned long INT_MAX = 1UL<<(sizeof(int)*8);
+    /* Shifting causes the value to be 1 more than an unsigned int can carry, so
+        subtract one from it in in next statement */
+    /* If not enough room for the additional character count, exit on error */
+    if( ((INT_MAX-1) - char_count) < total_chars ){
         printf("Error: File too big OR Uncompressed file given.\n");
         exit( EXIT_FAILURE );
     }
@@ -77,7 +78,6 @@ int main( int argc, char *argv[] ){
     int i;
     unsigned int total_chars;
     int uniq_bytes;
-
     /* Read input and open files to read and write from */
     parse_input_decode( argc, argv );
 
@@ -90,7 +90,7 @@ int main( int argc, char *argv[] ){
  
     /* If the file has no unique bytes, return an empty file and exit */
     if( uniq_bytes == 0){ 
-        printf("The file is empty.\n");
+        printf("The file is empty, or not a huffman compressed file.\n");
         exit( EXIT_SUCCESS );
     }
 
