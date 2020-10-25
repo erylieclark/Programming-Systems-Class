@@ -1,0 +1,20 @@
+/*******************************************************************************
+* Program 5: mypwd
+*
+* Erin Rylie Clark (eclark04)
+*******************************************************************************/
+
+/*--------------------------------INSTRUCTIONS--------------------------------*/
+1. Compile the c source code by entering "make"
+
+2. Run the file in any directory that you want to know the path of
+    simply by calling the absolute pathname of the program. For example:
+	/path/name/mypwd
+/*------------------------------------OTHER-----------------------------------*/
+There is not much about this program that I can think to tell you. I did a quick
+test of the "pathname too long" portion simply by removing the ifndef statement
+around PATH_MAX and shortening it to less than what I knew the directory would
+be. Other than that, I had a bit of an issue with device numbers but still
+managed to get it working as far as I know.
+
+
