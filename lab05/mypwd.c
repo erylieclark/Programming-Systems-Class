@@ -128,21 +128,22 @@ int main( void ){
     loc += PARENT_DIR_STR;
     
     /* Loop until we find root */
-    while( my_id != fs.st_ino ){
+    while( 1 ){
 
         /* Open my parent directory */
         if( (d_pntr = opendir( backpath )) == NULL ){
             perror("opendir");
             exit( EXIT_FAILURE );
         }
-        while( my_id != test_id && fs.st_dev == dev_id){ 
+        while( my_id != test_id || fs.st_dev != dev_id){ 
                 /* Read all the entries in this directory */
             /* Get the next entry in the directory */
             if( (dir = read_dir(d_pntr)) == NULL ){
                 break; /* End of stream */
             }
             /* Skip parent and self directories */
-            if( strcmp(dir -> d_name, ".") == 0 || strcmp(dir -> d_name, "..") == 0 ){
+            if( strcmp(dir -> d_name, ".") == 0 ||\
+                strcmp(dir -> d_name, "..") == 0 ){
                 continue;
             }
 
@@ -156,13 +157,16 @@ int main( void ){
                             the next one */
             }
             test_id = fs.st_ino;
-            printf("Test ID: %d\n", test_id);
-            printf("MyDev ID: %d\n", dev_id);
-            printf("Dev ID: %ld\n", fs.st_dev);
+            printf("Mine: %d, Test: %d\n", my_id, test_id);
+            printf("Right: %d, Cur: %ld\n", dev_id, fs.st_dev);
+        }
+
+        if( dir == NULL ){
+            printf("Could not find the root.\n");
+            exit( EXIT_FAILURE );
         }
         closedir(d_pntr);
-        printf("Test ID: %d\n", test_id);
-        
+        printf("Found myself................\n");
         /* Get my new information */ 
         add_to_backpath( backpath, loc, ".");
         if( lstat( backpath, &fs ) == -1 ){
@@ -171,8 +175,9 @@ int main( void ){
         }
         my_id = fs.st_ino;
         printf("My ID: %d\n", my_id);
+        dev_id = fs.st_dev;
 
-        /* Set the new path to my parent */
+        /* Set a path to my parent */
         add_to_backpath( backpath, loc, "../." );
         loc += PARENT_DIR_STR; /* Set to write after last "../" now */
 
@@ -181,7 +186,11 @@ int main( void ){
             perror("lstat1");
             exit( EXIT_FAILURE );
         }
-        printf("Dev ID: %ld\n", fs.st_dev);
+        test_id = fs.st_ino;
+        if( my_id == test_id && dev_id == fs.st_dev ){
+            printf("Found root.................\n");
+            break;
+        }
         add_to_backpath( backpath, loc, "\0" );
     }    
     return 0;
