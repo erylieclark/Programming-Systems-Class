@@ -1,0 +1,42 @@
+/*******************************************************************************
+* Midterm
+*
+* Erin Rylie Clark (eclark04)
+*******************************************************************************/
+I am not able to save the writeable pdf so this is where I will put my answers.
+
+1. The fundamental difference between system calls and standard io is that 
+system calls are significantly more expensive in terms of time and resources.
+Systems calls are accessing the system interface directly, whereas standard io
+is often accessing the systems calls but are more efficient because they will
+typically buffer the IO so that it is not stopping the process to acces the
+system interface constantly. Standard IO will often grab more information than
+you maybe need in order to prevent having to go back to the interface as often.
+The other thing is that standard IO is not instant because it is buffered. The
+system calls work as a sort of interrupt where it will stop the process to get
+the IO and then resume the process, so it will read or write as soon as you 
+want it to, but it takes longer to return to your process. Buffered standard io
+waits until it fills the buffer to access the system interface, so your IO may
+lag behind what you want. Another detail about system calls is that system
+calls run with permissions of the kernel.
+
+2. The umask is the set of permissions not to give. You want to AND the inverse
+of the umask with the created permissions for the file and that will give you
+the permissions.
+The umask is:				101 010 111
+The inverted umask is:			101 101 000
+File created with these permissions: 	110 110 100
+Final Permission: 			100 100 000
+
+So the permission are Read for the User, Read for the Group and none for other.
+
+3. Submitted source file as p3.c
+
+4. Submitted source file as p4.c
+
+5. Submitted source file as p5.c
+
+
+
+
+
