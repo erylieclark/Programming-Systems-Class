@@ -1,0 +1,18 @@
+/*******************************************************************************
+* Program 6: timeit
+*
+* Erin Rylie Clark (eclark04)
+*******************************************************************************/
+
+/*--------------------------------INSTRUCTIONS--------------------------------*/
+1. Compile the c source code by entering "make"
+
+2. Run it by entering ./timeit <seconds>
+ 
+/*------------------------------------OTHER-----------------------------------*/
+I don't think there is much about this program that you need to know. I know
+that there could be a possible race condition between when I turn on my timer
+and when I am waiting for it so I could miss the first signal, but since the
+signals are only coming every half second, the time it takes to get from the 
+timer set to the wait is very unlikely to take a half second and miss it.
+
