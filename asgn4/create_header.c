@@ -8,6 +8,10 @@
 
 #include "create_header.h"
 #include "read_write.h"
+/*
+#define MYOTCTAL
+#define DEVS
+*/
 
 /*------------------------------------------------------------------------------
 * Function: initialize_header_struct
@@ -64,12 +68,19 @@ void write_pathname( header_t *header, char path[] ){
 *   THE STRICT FLAG IS SET
 *-----------------------------------------------------------------------------*/
 void convert_to_header_format( uint32_t val, int width, char buf[] ){
-    uint32_t mask = 0x07; /* 3 LSBs turned on */
-    int i = 0;
-    char oct;
     int err = 0;
-    int orig_val = val;
-    
+
+    sprintf( buf, "%0*o", (width-1), val);
+    if( buf[width-1] != '\0' ){ /* If the int is too big to write as octal */
+        memset( buf, '\0', width ); /* Blank out the buffer again */
+        if( insert_special_int( buf, width, val )){
+            err++; /* Failed to insert the int */
+        }
+    }
+        
+
+
+#ifdef MYOCTAL    
     while( i < (width - 1) ){
         oct = val & mask; /* Get the first octal digit and convert to char */
         buf[i] = '0' + oct; /* Add the octal character into the buffer */
@@ -93,7 +104,7 @@ void convert_to_header_format( uint32_t val, int width, char buf[] ){
             i++;
         } /* REMINDER: COULD DO MEMSET HERE?????? */
     }
-
+#endif
 } 
 /*------------------------------------------------------------------------------
 * Function: set_typeflag_and_linkname
@@ -183,8 +194,8 @@ void get_uname_gname( struct stat file_st, header_t *header ){
 int chksum_count( char buf[] , int width ){
     int i = 0;
     int count = 0;
-    while( buf[i] != '\0' && i < width ){
-        count += buf[i];
+    while( i < width ){
+        count += (unsigned char ) buf[i];
         i++;
     }
     return count;
@@ -201,7 +212,12 @@ int chksum_count( char buf[] , int width ){
 void get_info( struct stat file_st, header_t *header, char path[] ){
     int chksum = 0;
     /* Mode */
-    convert_to_header_format( file_st.st_mode, MODE_W, header -> mode ); 
+    printf("mode(oct): %0*o\n", (MODE_W-1), file_st.st_mode);
+    printf("mode: %d\n", file_st.st_mode);
+    convert_to_header_format( (file_st.st_mode & ~S_IFMT), MODE_W,\
+        header -> mode ); 
+    printf("mode(oct): %0*o\n", (MODE_W-1), file_st.st_mode);
+    printf("mode: %d\n", file_st.st_mode);
     chksum += chksum_count( header -> mode, MODE_W );
     /* User ID */
     convert_to_header_format( file_st.st_uid, UID_W, header -> uid ); 
@@ -231,6 +247,7 @@ void get_info( struct stat file_st, header_t *header, char path[] ){
     get_uname_gname( file_st, header );
     chksum += chksum_count( header -> uname, UNAME_W );
     chksum += chksum_count( header -> gname, GNAME_W );
+#ifdef DEVS
     /* Devmajor and Devminor */
     convert_to_header_format( major(file_st.st_dev),\
         DEVMAJ_W, header -> devmajor);
@@ -238,12 +255,17 @@ void get_info( struct stat file_st, header_t *header, char path[] ){
         DEVMIN_W, header -> devminor);
     chksum += chksum_count( header -> devmajor, DEVMAJ_W );
     chksum += chksum_count( header -> devminor, DEVMIN_W );
+#endif
     /* Be sure to add the path name to the chksum count */
     chksum += chksum_count( header -> name, NAME_W );
     chksum += chksum_count( header -> prefix, PREFIX_W );
+    printf("chksum(oct): %0*o\n", (CHKSUM_W-1), chksum);
+    printf("chksum: %d\n", chksum);
     /* Chksum */
     chksum += (' ')*CHKSUM_W; /* Assume chksum is all spaces and add to count */
     convert_to_header_format( chksum, CHKSUM_W, header -> chksum ); 
+    printf("chksum(oct): %0*o\n", (CHKSUM_W-1), chksum);
+    printf("chksum: %d\n", chksum);
 }
 
 /*------------------------------------------------------------------------------
@@ -292,6 +314,8 @@ void write_to_output_buffer( header_t *header ){
         /* Very tedious.... */
     where = memcpy( where, header -> name, NAME_W );
     where = where + NAME_W;
+    where = memcpy( where, header -> mode, MODE_W );
+    where = where + MODE_W;
     where = memcpy( where, header -> uid, UID_W );
     where = where + UID_W;
     where = memcpy( where, header -> gid, GID_W );

@@ -32,7 +32,7 @@
 #define GID_W 8
 #define SIZE_W 12
 #define MTIME_W 12
-#define CHKSUM_W 9
+#define CHKSUM_W 8
 #define TYPEFLAG_W 1
 #define LINKNAME_W 100
 #define MAGIC_W 6
