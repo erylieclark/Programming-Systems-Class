@@ -16,8 +16,8 @@ TESTDIR = $(PWD)/inputs
 TESTINPUTS = $(TESTDIR)/*
 TESTEXPECT = $(TESTDIR)/outputs/*
 MAIN = mytar 
-OBJ = mytar.o user_input.o create_tar.o 
-DEPS = user_input.h create_tar.h
+OBJ = mytar.o user_input.o create_tar.o create_header.o read_write.o 
+DEPS = user_input.h create_tar.h create_header.h read_write.h
 all: $(MAIN)
 
 mytar: mytar.o $(OBJ) # Create uniq out of the listed object files

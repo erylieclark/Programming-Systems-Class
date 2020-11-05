@@ -16,6 +16,8 @@
 #include <ctype.h>
 #include "user_input.h"
 #include "create_tar.h"
+#include "create_header.h"
+#include "read_write.h"
 
 /*------------------------------------------------------------------------------
 * Function: print_output 

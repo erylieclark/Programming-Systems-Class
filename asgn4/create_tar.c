@@ -7,7 +7,8 @@
 *******************************************************************************/
 
 #include "create_tar.h"
-
+#include "create_header.h"
+#include "read_write.h"
 /*------------------------------------------------------------------------------
 * Function: read_dir 
 *
@@ -63,16 +64,19 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
     struct stat file_st = {0};
     struct dirent *dir_st;
     DIR *d_pntr;
-    
+    int num_bytes = 0; 
     /* Stat the entry */
     if( lstat( path, &file_st ) == -1 ){
         perror(path);
         return; /* If we don't have permission for this one, check
                             the next one */
     }
-    /* Collect info on the entry */
-    collect_h_info( struct stat file_st );
+    /* Collect info on the entry and write it to the output */
+    create_header( file_st , path );
     /* Write it the input to the tar file */
+    if( (num_bytes = write_buffer( fd )) != BLOCK_SIZE ){
+        printf("Did not write full block.\n");
+    }
 
     /* Check if it is a directory */
     if( (file_st.st_mode & S_IFMT) == S_IFDIR ){
@@ -101,6 +105,7 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
             recurse_files_and_create( fd, path, \
                 (loc + strlen(dir_st -> d_name) + 1));
         }
+        closedir( d_pntr );
     }
 }
 
