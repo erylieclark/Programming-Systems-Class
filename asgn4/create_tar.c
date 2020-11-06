@@ -64,23 +64,26 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
     struct stat file_st = {0};
     struct dirent *dir_st;
     DIR *d_pntr;
-    int num_bytes = 0; 
+    int num_blocks; 
+    FILE *rdfd;
     /* Stat the entry */
     if( lstat( path, &file_st ) == -1 ){
         perror(path);
         return; /* If we don't have permission for this one, check
                             the next one */
     }
-    /* Collect info on the entry and write it to the output */
-    create_header( file_st , path );
-    /* Write it the input to the tar file */
-    if( (num_bytes = write_buffer( fd )) != BLOCK_SIZE ){
-        printf("Did not write full block.\n");
-    }
+    /* Collect info on the entry and write it to the output buffer */
+    if( (num_blocks = create_header( file_st , path )) == -1 ){
+        /* Failed to get the size correct, skip to the next file */
+        return; /* REMINDER: THIS MAY NOT BE THE RIGHT THING TO DO */
+    } /* num_blocks should be zero if it is a directory */
 
     /* Check if it is a directory */
     if( (file_st.st_mode & S_IFMT) == S_IFDIR ){
-        /* If it is a dir, start reading the files in it */
+        /* If it is a dir, write the header to the output and then start 
+            reading the files in it */
+        /* Write the header to the tar file */
+        write_buffer_out( fd );
         /* Open the given directory */
         if( (d_pntr = opendir( path )) == NULL ){
             perror(path); /* If can't open the directory, print an error */
@@ -101,13 +104,27 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
                     recurse down further and the path would be even longer, so 
                     skip it even if it is a directory */
             }
-            printf( "%s\n", path );
             recurse_files_and_create( fd, path, \
                 (loc + strlen(dir_st -> d_name) + 1));
         }
         closedir( d_pntr );
     }
+    else{ /* If not a directory, open the file*/
+        rdfd = fopen( path, "r" ); /* Open for read only */
+        if( rdfd == NULL ){ /* If failed to open */
+            perror("fopen");
+            return; /* Return before writing anything to output */
+        }
+        else{ /* If opened successfully, write the header to ouput, then write
+                    the contents of the file */
+            /* Write the header to the tar file */
+            write_buffer_out( fd );
+            /* Write the contents of the file to the tar file */
+            write_file_contents( fd, rdfd, num_blocks );
+        }
+    }
 }
+
 
 /*------------------------------------------------------------------------------
 * Function:  
@@ -128,6 +145,10 @@ void create_tar( FILE *fd, char **paths ){
         recurse_files_and_create( fd, path_buf, loc );
         cur++;
     }
+    /* Finished by writing two blocks of null bytes */
+    memset( writebuf, '\0', BLOCK_SIZE );
+    write_buffer_out( fd );
+    write_buffer_out( fd );
 
 }
 

@@ -212,12 +212,8 @@ int chksum_count( char buf[] , int width ){
 void get_info( struct stat file_st, header_t *header, char path[] ){
     int chksum = 0;
     /* Mode */
-    printf("mode(oct): %0*o\n", (MODE_W-1), file_st.st_mode);
-    printf("mode: %d\n", file_st.st_mode);
     convert_to_header_format( (file_st.st_mode & ~S_IFMT), MODE_W,\
         header -> mode ); 
-    printf("mode(oct): %0*o\n", (MODE_W-1), file_st.st_mode);
-    printf("mode: %d\n", file_st.st_mode);
     chksum += chksum_count( header -> mode, MODE_W );
     /* User ID */
     convert_to_header_format( file_st.st_uid, UID_W, header -> uid ); 
@@ -259,13 +255,9 @@ void get_info( struct stat file_st, header_t *header, char path[] ){
     /* Be sure to add the path name to the chksum count */
     chksum += chksum_count( header -> name, NAME_W );
     chksum += chksum_count( header -> prefix, PREFIX_W );
-    printf("chksum(oct): %0*o\n", (CHKSUM_W-1), chksum);
-    printf("chksum: %d\n", chksum);
     /* Chksum */
     chksum += (' ')*CHKSUM_W; /* Assume chksum is all spaces and add to count */
     convert_to_header_format( chksum, CHKSUM_W, header -> chksum ); 
-    printf("chksum(oct): %0*o\n", (CHKSUM_W-1), chksum);
-    printf("chksum: %d\n", chksum);
 }
 
 /*------------------------------------------------------------------------------
@@ -275,8 +267,9 @@ void get_info( struct stat file_st, header_t *header, char path[] ){
 *
 * param:  
 *-----------------------------------------------------------------------------*/
-void create_header( struct stat file_st, char path[] ){
+int create_header( struct stat file_st, char path[] ){
     header_t *header;
+    int num_blocks;
 
     /* Create a new header struct to store the info */
     header = (header_t *) malloc(sizeof(header_t));
@@ -291,17 +284,41 @@ void create_header( struct stat file_st, char path[] ){
     /* Put the path name into the header struct */
     write_pathname( header, path );
 
-    /* Collect remaining info (except chksum), formtted, into the struct */
+    /* Collect remaining info, formatted, into the struct */
     get_info( file_st, header, path );
 
     /* Write all info to output buffer, output buffer is global */ 
     write_to_output_buffer( header );
 
+    /* Get the number of blocks to be written before freeing the struct */
+    num_blocks = get_content_size( file_st );
+    
+    free( header ); /* No value is returned on free */
+
+    return num_blocks;
 }
 
-
 /*------------------------------------------------------------------------------
-* Function: write_to_output_buffer
+* Function: get_content_size
+*
+* Description: this function is intended to read the size of the file, determine
+*   how many blocks of data need to be written, and returns the value
+*
+* param: 
+* return: the number of blocks 
+*-----------------------------------------------------------------------------*/
+int get_content_size( struct stat file_st ){
+    int num_blocks;
+    /* Find num blocks based on file size from stat first */
+    num_blocks = ( file_st.st_size ) / BLOCK_SIZE;
+    if( (file_st.st_size % BLOCK_SIZE) > 0 ){
+        printf("Modulus: %ld\n", (file_st.st_size % BLOCK_SIZE));
+        num_blocks++; /* Add one if there are remaining bytes */
+    }
+    return num_blocks;
+}
+/*------------------------------------------------------------------------------
+* Function: read_write_buffer_header
 *
 * Description: 
 *

@@ -71,7 +71,8 @@ void set_magic_and_v( header_t *header );
 void get_uname_gname( struct stat file_st, header_t *header );
 int chksum_count( char buf[], int width );
 void get_info( struct stat file_st, header_t *header, char path[] );
-void create_header( struct stat file_st, char path[] );
+int create_header( struct stat file_st, char path[] );
+int get_content_size( struct stat file_st );
 void write_to_output_buffer( header_t *header );
 int insert_special_int( char *where, size_t size, int32_t val );
 
