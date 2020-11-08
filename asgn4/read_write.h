@@ -28,5 +28,6 @@ extern unsigned char writebuf[BLOCK_SIZE];
 void read_into_buffer( FILE *fd );
 int write_buffer_out( FILE *fd );
 void write_file_contents( FILE *wrfd, FILE *rdfd, int blocks );
+void restore_file_contents( FILE *wrfd, FILE *rdfd, int blocks, int size );
 
 #endif /*_READ_WRITE_H */

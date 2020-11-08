@@ -110,6 +110,117 @@ void initialize_verbose_struct( verbose_t *verbose ){
 
 }
 /*------------------------------------------------------------------------------
+* Function: restore_attributes
+*
+* Description: 
+*
+* param:  
+*-----------------------------------------------------------------------------*/
+int restore_attributes( verbose_t *verbose ){
+    int x_mask = S_IXUSR | S_IXGRP | S_IXOTH;
+    int rw_perms = 0666;
+    int rwx_perms = 0777;
+    struct stat statbuf;
+
+    /* Start with permissions */
+    if( x_mask & verbose -> mode ){ /* If any of the execute bits are set */
+        chmod( verbose -> name, rwx_perms ); /* Offer read/write/execute */
+    }
+    else{ /* If no execute bits are set */
+        chmod( verbose -> name, rw_perms ); /* Offer only read/write */
+    }
+    /* Now restore the modified time - THIS MIGHT CHANGE AFTER WRITING TO IT */
+    if( (lstat( verbose -> name, &statbuf )) == -1 ){ /* Stat to access time */
+        perror("lstat new file");
+        return -1;
+    }
+    else{
+        statbuf.st_mtime = verbose -> mtime;
+    }
+    return 0;
+}
+/*------------------------------------------------------------------------------
+* Function: create_item_type 
+*
+* Description: 
+*
+* param:  
+*-----------------------------------------------------------------------------*/
+FILE *create_item_type( verbose_t *verbose ){
+    FILE *wrfd;
+    switch( verbose -> type ){
+        case '-': /* A regular file */
+            wrfd = fopen( verbose -> name, "w" ); /* Open file for writing */
+            if( wrfd == NULL ){
+                perror("fopen new file");
+                exit( EXIT_FAILURE );
+            }
+            break;
+        case 'l':
+            printf("The file is a symbolic link... Not implemented yet.\n");
+            wrfd = NULL;
+            break;
+        case 'd':
+            if (mkdir( verbose -> name, (verbose -> mode) &\
+                (S_IXUSR | S_IXGRP | S_IXOTH )? 0777 : 0666 )){
+                perror("mkdir");
+                exit( EXIT_FAILURE );
+            }
+            wrfd = NULL;
+            break;
+    }
+    return wrfd;
+}
+/*------------------------------------------------------------------------------
+* Function: extract_tar
+*
+* Description: 
+*
+* param:  
+*-----------------------------------------------------------------------------*/
+void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks ){
+    static char last_path[MAX_PATH_LENGTH] = {0};
+    FILE *wrfd;
+    int length;
+    /* get the length of last_path string */
+    length = strlen( last_path );
+    /* Compare the first *length* characters between this path and last */
+    if( length != 0 ){
+        if( strncmp( last_path, verbose -> name, length ) ){
+            /* They are not equal */
+            /* Parse the name and look for the directories, create them if they
+                don't already exist */
+        }
+            /* Create the new item???? */
+            wrfd = create_item_type( verbose );
+    }
+    else{
+        /* Get the length of the string in path if there are any paths and the current file/directory */
+        /* Get the smallest length, and compare that portion of the strings */
+        /* If they are not the same, check the next path, or skip the file if no more paths */
+        /* If they are the same, create the directory/file of the smallest length */
+        /* Use a function to do this */
+        /* Compare to paths */
+        /* Parse the name and look for directories, create if nonexistant */
+    }
+     
+    wrfd = create_item_type( verbose );
+    /* Check if the item is a directory, file, or symlink */
+    /* Create the item */
+    if( wrfd == NULL ){
+        if( verbose -> type == 'd' ){
+            strncpy( last_path, verbose -> name , MAX_PATH_LENGTH );
+        }
+        else{
+            memset( last_path, '\0', MAX_PATH_LENGTH );
+        }
+    }
+    else{
+        restore_file_contents( wrfd, rdfd, num_blocks, verbose -> size );
+    }
+
+}
+/*------------------------------------------------------------------------------
 * Function: read_tar 
 *
 * Description: 

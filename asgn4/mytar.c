@@ -60,6 +60,7 @@ int main(int argc, char *argv[]){
         case EXTRACT:
             fd = open_file( argv[TAR_ARG], EXTRACT );
             paths = get_paths( argc, argv, EXTRACT );
+            read_tar( fd, paths, extract_tar );
             break;
     }
 

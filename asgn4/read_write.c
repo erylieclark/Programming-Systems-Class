@@ -79,13 +79,62 @@ void write_file_contents( FILE *wrfd, FILE *rdfd, int blocks ){
             }
         }
 
-        /* Write the buffer to the tar file */
+        /* Write the buffer to the file */
         write_buffer_out( wrfd );
         i++;
     }
 }    
 
 
+/*------------------------------------------------------------------------------
+* Function: restore_file_contents 
+*
+* Description: 
+* 
+* param: fd - the file stream pointing to the tar file given by the user 
+*-----------------------------------------------------------------------------*/
+/* REMINDER: COULD MAKE THIS FASTER BY WRITING MORE BLOCKS AT ONCE */
+void restore_file_contents( FILE *wrfd, FILE *rdfd, int blocks, int size ){
+    int i = 0;
+    int num_bytes;
+    int leftover;
+    if( (leftover = size % BLOCK_SIZE) ){
+        blocks--; /* Remove one from blocks b/c the last one won't be full */
+    }
+    while( i < blocks ){
+        /* Clear write buffer */
+        memset( writebuf, '\0', BLOCK_SIZE );
+
+        /* Read directly into the writebuf */
+        num_bytes = fread( writebuf, sizeof(char), BLOCK_SIZE, rdfd );
+        if( num_bytes == 0 ){ /* Check for error */
+            if( ferror(rdfd) ){ /* Error */
+                printf("Error reading contents of file.\n");
+                exit( EXIT_FAILURE );
+            }
+        }
+
+        /* Write the buffer to the file */
+        write_buffer_out( wrfd );
+        i++;
+    }
+    if( leftover != 0 ){
+        /* Clear write buffer */
+        memset( writebuf, '\0', BLOCK_SIZE );
+
+        /* Read directly into the writebuf */
+        num_bytes = fread( writebuf, sizeof(char), leftover, rdfd );
+        if( num_bytes == 0 ){ /* Check for error */
+            if( ferror(rdfd) ){ /* Error */
+                printf("Error reading contents of file.\n");
+                exit( EXIT_FAILURE );
+            }
+        }
+        num_bytes = fwrite( writebuf, sizeof(char), leftover, wrfd );
+        fseek( rdfd, (BLOCK_SIZE - leftover), SEEK_CUR );
+    }
+    
+}
 
 
 
