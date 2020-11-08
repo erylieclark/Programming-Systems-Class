@@ -20,7 +20,7 @@
 #include <unistd.h>
 
 /* Global Variables */
-extern int verbose;
+extern int verb_list;
 extern int strict;
 
 #define CREATE 0x01

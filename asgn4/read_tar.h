@@ -29,9 +29,10 @@
 void write_permission( int mode );
 void print_uname_gname( char *uname, char *gname );
 void print_time( time_t *mtime );
-void list_tar( verbose_t *verbose );
+void list_tar( verbose_t *verbose, FILE *fd, int num_blocks );
 void initialize_verbose_struct( verbose_t *verbose );
-void read_tar( FILE *fd, char **paths, void(*option)(verbose_t *verbose) );
+void read_tar( FILE *fd, char **paths, void(*option)(verbose_t *verbose,\
+	FILE *fd, int num_blocks ) );
 
 
 

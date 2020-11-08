@@ -11,7 +11,7 @@
 
 #include "user_input.h"
 /* Global Variables */
-int verbose = 0;
+int verb_list = 0;
 int strict = 0;
 
 /*------------------------------------------------------------------------------
@@ -54,11 +54,6 @@ void validate_options( char options ){
         }
         else{
             CTX = 1; /* Set the flag if 'x' was set and ct were not */
-            if( options & VERB ){ /* Make sure verbose option is not selected */
-                printf("Can only use 'v' option with 't'\n");
-                printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
-                exit( EXIT_FAILURE );
-            }
         }
     }
 
@@ -69,7 +64,7 @@ void validate_options( char options ){
     }
     /* Set the global variables for verbose and strict */
     if( options & VERB ){
-        verbose = 1;
+        verb_list = 1;
     }
     if( options & STRICT ){
         strict = 1;

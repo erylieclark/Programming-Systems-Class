@@ -86,7 +86,7 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
             reading the files in it */
         /* Write the header to the tar file */
         write_buffer_out( fd );
-        if( verbose ){ /* If verbose option was selected, print the path */
+        if( verb_list ){ /* If verbose option was selected, print the path */
             printf("%s\n", path);
         }
         /* Open the given directory */
@@ -126,7 +126,7 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
             write_buffer_out( fd );
             /* Write the contents of the file to the tar file */
             write_file_contents( fd, rdfd, num_blocks );
-            if( verbose ){ /* If verbose option was selected, print the path */
+            if( verb_list ){ /* If verbose option was selected, print the path */
                 printf("%s\n", path);
             }
         }

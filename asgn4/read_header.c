@@ -93,13 +93,11 @@ void separate_header_fields( header_t *header ){
     loc += PREFIX_W;
     chksum += chksum_count(header -> prefix, PREFIX_W);
 
-    printf("About to count the remaining bytes.\n");
     while( loc != BLOCK_SIZE ){ /* Count the remaining bytes that do
         not belong to a specific field */
         chksum += readbuf[loc];
         loc++;
     }
-    printf("Counted the remaining bytes.\n");
     /* Convert chksum to an int and compare to counted chksum */
     if( chksum != (convert_octstr_to_int(header -> chksum, CHKSUM_W)) ){
         printf("Invalid tar file - chksum does not match.\n");
@@ -150,14 +148,13 @@ void stitch_name_together( header_t *header, verbose_t *verbose ){
     /* First check if there is anything in prefix - then check if it fills the
         buffer or not */
     if( (header -> prefix)[0] == '\0' ){ /* Nothing in the prefix */
-        printf("nothing in prefix\n"); /* do nothing */
+        ; /* do nothing */
     }
     else{ /* If not empty, copy into the verbose buffer */
         length = strnlen( header -> prefix, PREFIX_W);
         strncpy( verbose -> name, header -> prefix, length );
         (verbose -> name)[loc] = '/';
         loc++;
-        printf("wrote the prefix\n");
     }
     loc = length;
     /* Write a '/' into the next spot in the buffer */
@@ -167,13 +164,10 @@ void stitch_name_together( header_t *header, verbose_t *verbose ){
         exit( EXIT_FAILURE );
     }
     else{ /* If not empty, copy into verbose buffer */
-        printf("about to copy name\n");
         length = strnlen( header -> name, NAME_W);
-        printf("got length\n");
         /* COULD BE AN ISSUE WITH NULL TERMINATING THIS */
         strncpy( &(verbose -> name)[loc], header -> name, length );
     }
-    printf("got name\n");
 }
         
 /*------------------------------------------------------------------------------
@@ -227,7 +221,7 @@ char get_type( char flag ){
             type = 'l';
             break;
         case '5':
-            type = 'f';
+            type = 'd';
             break;
         default:
             printf("This file type is not supported by mytar.\n");
@@ -247,7 +241,6 @@ int unpack_header_struct( header_t *header, verbose_t *verbose ){
  
     /* Start by getting stitching the name together */
     stitch_name_together( header, verbose );
-    printf("stitched name\n"); 
     /* Take the octal strings in the header struct and turn them into ints */
     verbose -> mode = convert_octstr_to_int( header -> mode, MODE_W );
     verbose -> uid = convert_octstr_to_int( header -> uid, UID_W );
@@ -255,12 +248,10 @@ int unpack_header_struct( header_t *header, verbose_t *verbose ){
     verbose -> size = convert_octstr_to_int( header -> size, SIZE_W );
     verbose -> mtime = convert_octstr_to_int( header -> mtime, MTIME_W );
 
-    printf("converted oct to strings\n"); 
     /* Get the type of file */
     if( (verbose -> type = get_type( *(header -> typeflag) )) == -1 ){
         return -1;
     }
-    printf("got file type\n"); 
 
     /* Check for a linkname */ /* POSSIBLY NEED TO CONVERT FROM OCTAL?? */
     if( (header -> linkname)[0] != '\0' ){ /* If there is something in it */
@@ -270,7 +261,6 @@ int unpack_header_struct( header_t *header, verbose_t *verbose ){
     else{ /* If nothing there, do nothing */ 
         ; /* Do nothing */
     }
-    printf("got linkname\n"); 
 
     /* Now transfer uname and gname */
     if( (header -> uname)[0] != '\0' ){ /* If there is something in it */
@@ -280,7 +270,6 @@ int unpack_header_struct( header_t *header, verbose_t *verbose ){
     else{ /* If nothing there, do nothing */ 
         ; /* Do nothing */
     }
-    printf("got uname\n"); 
     if( (header -> gname)[0] != '\0' ){ /* If there is something in it */
         length = strnlen( header -> gname, GNAME_W);
         strncpy( verbose -> gname, header -> gname, length );
@@ -288,7 +277,6 @@ int unpack_header_struct( header_t *header, verbose_t *verbose ){
     else{ /* If nothing there, do nothing */ 
         ; /* Do nothing */
     }
-    printf("got gname\n"); 
     return 0;
 }
 /*------------------------------------------------------------------------------
@@ -308,7 +296,6 @@ int read_header( verbose_t *verbose ){
     if( check_null_header() ){
         return -1; /* Return a 1 if it is a null header */
     }
-    printf("Checked null header.\n");
 
     /* Create a new header struct to store the info */
     header = (header_t *) malloc(sizeof(header_t));
@@ -316,24 +303,18 @@ int read_header( verbose_t *verbose ){
         perror("malloc header");
         exit( EXIT_FAILURE );
     }
-    printf("malloc'd fine\n");
 
     /* Set all fields to empty */
     initialize_header_struct( header );
-    printf("initialized\n");
     /* Now start pulling all the contents into the header struct for easy
         parsing, validate the value of chcksum simultaneously */
     separate_header_fields( header );
-    printf("separated header fields\n");    
     /* Verify Header - check magic number and version (if strict) */ 
     verify_header( header );
-    printf("verified header\n");
     /* Get info into computer friendly format */
     unpack_header_struct( header, verbose ); 
-    printf("unpacked header\n");
     /* Get the number of blocks to read for this file */
     num_blocks = get_content_size( verbose -> size );
-    printf("got content size\n");
     /* Pass back the header */
     return num_blocks;
 }
