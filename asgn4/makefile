@@ -16,8 +16,8 @@ TESTDIR = $(PWD)/inputs
 TESTINPUTS = $(TESTDIR)/*
 TESTEXPECT = $(TESTDIR)/outputs/*
 MAIN = mytar 
-OBJ = mytar.o user_input.o create_tar.o create_header.o read_write.o 
-DEPS = user_input.h create_tar.h create_header.h read_write.h
+OBJ = mytar.o user_input.o create_tar.o create_header.o read_write.o read_tar.o read_header.o 
+DEPS = user_input.h create_tar.h create_header.h read_write.h read_tar.h read_header.h
 all: $(MAIN)
 
 mytar: mytar.o $(OBJ) # Create uniq out of the listed object files
@@ -37,7 +37,7 @@ memcheck_enc: mytar
 
 .PHONY: debug
 debug: mytar 
-	gdb --args ./$< cf tarfile Test/ 
+	gdb --args ./$< tvf tarfile.exp 
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"

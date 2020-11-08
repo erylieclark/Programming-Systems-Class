@@ -10,6 +10,9 @@
 *******************************************************************************/
 
 #include "user_input.h"
+/* Global Variables */
+int verbose = 0;
+int strict = 0;
 
 /*------------------------------------------------------------------------------
 * Function: validate_options 
@@ -32,11 +35,6 @@ void validate_options( char options ){
     /* Now check that only one of 'c' 't' 'x' is set */
     if( options & CREATE ){ /* Check for 'c' */
         CTX = 1; /* Set the flag if 'c' was selected */
-        if( options & VERB ){ /* Make sure verbose option was not selected */
-            printf("Can only use 'v' option with 't'\n");
-            printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
-            exit( EXIT_FAILURE );
-        }
     }
     if( options & LIST ){ /* Check for 't' */
         if( CTX == 1){ /* Error if c was already set */
@@ -68,6 +66,13 @@ void validate_options( char options ){
         printf("You must choose one of the 'ctx' options.\n");
         printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
         exit( EXIT_FAILURE );
+    }
+    /* Set the global variables for verbose and strict */
+    if( options & VERB ){
+        verbose = 1;
+    }
+    if( options & STRICT ){
+        strict = 1;
     }
 }
 
@@ -121,7 +126,7 @@ int read_optional_input(int argc, char **argv){
 
     /* Check that appropriate options were set */    
     validate_options( options );
-    
+        
     return options;
 }      
 
@@ -140,7 +145,7 @@ int read_optional_input(int argc, char **argv){
 FILE *open_file( char *argv, int mode ){
     FILE *fd;
     int check_size = 0; 
-    struct stat *statbuf = {0};
+    struct stat statbuf = {0};
     switch(mode){
         case LIST: 
             check_size = 1;
@@ -165,18 +170,21 @@ FILE *open_file( char *argv, int mode ){
         exit( EXIT_FAILURE );
     }
 
-    /* If reading a tar file, check that the size is a multiple of the 512
-        block size */
     if( check_size == 1 ){ /* If reading a tar file, check that the size is a
             multiple of the 512 block size */
-        if( (lstat( argv, statbuf )) == -1 ){ /* Stat the file */
+        if( (lstat( argv, &statbuf )) == -1 ){ /* Stat the file */
             perror("lstat");
             exit( EXIT_FAILURE );
         }
-        if( (statbuf -> st_size % BLOCK_SIZE) ){ /* Check its size */
-            printf("Not a valid tar file.\n");
+        if( (statbuf.st_size) < 2*BLOCK_SIZE ){ /* Too small to be tar */
+            printf("Not a valid tar file - not enough bytes.\n");
             exit( EXIT_FAILURE );
         }
+        else if( (statbuf.st_size % BLOCK_SIZE) ){ /* Check its size */
+            printf("Not a valid tar file - size not a multiple of 512.\n");
+            exit( EXIT_FAILURE );
+        }
+        
     }
     return fd;
 }
@@ -195,7 +203,7 @@ FILE *open_file( char *argv, int mode ){
 * 
 * return: returns a pointer to the buffer or NULL if no path arguments
 *-----------------------------------------------------------------------------*/
-char ** get_paths( int argc, char **argv ){
+char ** get_paths( int argc, char **argv, int mode ){
     int i = 0; /* Keep track of how many paths we've stored */
     int num_paths = argc - PATH_ARG;
     int act_paths = 0; /* Number of valid paths given from user */
@@ -204,9 +212,11 @@ char ** get_paths( int argc, char **argv ){
             first spot where a path could be */
     char **paths;
     struct stat statbuf = {0};
-    if( num_paths == 0 ){
-        printf( "No paths given.\n" );
-        return NULL;
+    if( mode == CREATE ){
+        if( num_paths == 0 ){
+            printf( "No paths given.\n" );
+            return NULL;
+        }
     }
 
     /* Create a buffer to hold the pointers to each of the paths */
@@ -215,7 +225,6 @@ char ** get_paths( int argc, char **argv ){
         perror( "malloc path buffer" );
         exit( EXIT_FAILURE );
     }
-    printf("%d\n",num_paths);
     /* Store pointers into the buffer */
     while( i < num_paths ){
         /* First check that the path exists */
@@ -226,7 +235,6 @@ char ** get_paths( int argc, char **argv ){
             continue; 
         } 
         paths[act_paths] = argv[cur_path];
-        printf( "Path added: %s\n", paths[act_paths] );
         cur_path++;
         i++;
         act_paths++; /* This path is valid, so add another */

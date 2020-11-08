@@ -18,7 +18,6 @@ unsigned char writebuf[BLOCK_SIZE];
 * Description:  
 *
 * param: fd - the file stream pointing to the tar file given by the user 
-* return: num_bytes - the number of bytes read by the read function
 *-----------------------------------------------------------------------------*/
 void read_into_buffer( FILE *fd ){
     /* Read the next block */
@@ -62,6 +61,7 @@ int write_buffer_out( FILE *fd ){
 * 
 * param: fd - the file stream pointing to the tar file given by the user 
 *-----------------------------------------------------------------------------*/
+/* REMINDER: COULD MAKE THIS FASTER BY WRITING MORE BLOCKS AT ONCE */
 void write_file_contents( FILE *wrfd, FILE *rdfd, int blocks ){
     int i = 0;
     int num_bytes;

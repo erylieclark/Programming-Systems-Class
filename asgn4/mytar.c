@@ -18,7 +18,8 @@
 #include "create_tar.h"
 #include "create_header.h"
 #include "read_write.h"
-
+#include "read_header.h"
+#include "read_tar.h"
 /*------------------------------------------------------------------------------
 * Function: print_output 
 *
@@ -46,21 +47,19 @@ int main(int argc, char *argv[]){
     /* Determine what needs to be done: extract, list, or create */
     switch( options & (CREATE | LIST | EXTRACT ) ){
         case CREATE:
-            printf("Creating the tar file...\n");
             fd = open_file( argv[TAR_ARG], CREATE );
-            if( (paths = get_paths( argc, argv )) == NULL )
-                return 0; /* Return an empty file if no paths */ 
+            /* NEED TO CHECK FOR RETURN VALUES!!!! */
+            paths = get_paths( argc, argv, CREATE );
             create_tar( fd, paths );
             break;
         case LIST:
-            printf("Opening the tar file for listing...\n");
             fd = open_file( argv[TAR_ARG], LIST );
-            paths = get_paths( argc, argv );
+            paths = get_paths( argc, argv, LIST );
+            read_tar( fd, paths, list_tar );
             break;
         case EXTRACT:
-            printf("Opening the tar file for extracting...\n");
             fd = open_file( argv[TAR_ARG], EXTRACT );
-            paths = get_paths( argc, argv );
+            paths = get_paths( argc, argv, EXTRACT );
             break;
     }
 

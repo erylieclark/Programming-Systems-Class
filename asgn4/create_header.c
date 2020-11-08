@@ -184,7 +184,7 @@ void get_uname_gname( struct stat file_st, header_t *header ){
 }
 
 /*------------------------------------------------------------------------------
-* Function:  
+* Function: chksum_count 
 *
 * Description: This function will get the user id and the group id, and format
 *   them correctly before placing them back into the header struct.
@@ -195,7 +195,7 @@ int chksum_count( char buf[] , int width ){
     int i = 0;
     int count = 0;
     while( i < width ){
-        count += (unsigned char ) buf[i];
+        count += (unsigned char) buf[i];
         i++;
     }
     return count;
@@ -283,7 +283,6 @@ int create_header( struct stat file_st, char path[] ){
 
     /* Put the path name into the header struct */
     write_pathname( header, path );
-
     /* Collect remaining info, formatted, into the struct */
     get_info( file_st, header, path );
 
@@ -291,7 +290,7 @@ int create_header( struct stat file_st, char path[] ){
     write_to_output_buffer( header );
 
     /* Get the number of blocks to be written before freeing the struct */
-    num_blocks = get_content_size( file_st );
+    num_blocks = get_content_size( file_st.st_size );
     
     free( header ); /* No value is returned on free */
 
@@ -307,12 +306,11 @@ int create_header( struct stat file_st, char path[] ){
 * param: 
 * return: the number of blocks 
 *-----------------------------------------------------------------------------*/
-int get_content_size( struct stat file_st ){
+int get_content_size( int size ){
     int num_blocks;
     /* Find num blocks based on file size from stat first */
-    num_blocks = ( file_st.st_size ) / BLOCK_SIZE;
-    if( (file_st.st_size % BLOCK_SIZE) > 0 ){
-        printf("Modulus: %ld\n", (file_st.st_size % BLOCK_SIZE));
+    num_blocks = size / BLOCK_SIZE;
+    if( (size % BLOCK_SIZE) > 0 ){
         num_blocks++; /* Add one if there are remaining bytes */
     }
     return num_blocks;

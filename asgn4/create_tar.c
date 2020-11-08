@@ -9,6 +9,8 @@
 #include "create_tar.h"
 #include "create_header.h"
 #include "read_write.h"
+#include "user_input.h"
+#include "read_header.h"
 /*------------------------------------------------------------------------------
 * Function: read_dir 
 *
@@ -41,7 +43,7 @@ struct dirent *read_dir(DIR *d_pntr, const char *path){
 *-----------------------------------------------------------------------------*/
 int add_to_path( char path[], int loc, const char *d_name){
     /* Check if it will fit in the total first */
-    if( (loc + strlen(d_name) + 1) >= HEADER_PATH_MAX ){ /* Add one for slash */
+    if( (loc + strlen(d_name) + 1) >= MAX_PATH_LENGTH ){ /* Add one for slash */
         printf("Path too long.\n");
         return 0; /* Failed */
     }
@@ -84,6 +86,9 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
             reading the files in it */
         /* Write the header to the tar file */
         write_buffer_out( fd );
+        if( verbose ){ /* If verbose option was selected, print the path */
+            printf("%s\n", path);
+        }
         /* Open the given directory */
         if( (d_pntr = opendir( path )) == NULL ){
             perror(path); /* If can't open the directory, print an error */
@@ -121,6 +126,9 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
             write_buffer_out( fd );
             /* Write the contents of the file to the tar file */
             write_file_contents( fd, rdfd, num_blocks );
+            if( verbose ){ /* If verbose option was selected, print the path */
+                printf("%s\n", path);
+            }
         }
     }
 }
@@ -136,7 +144,7 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
 
 void create_tar( FILE *fd, char **paths ){
     int cur = 0;
-    char path_buf[HEADER_PATH_MAX];
+    char path_buf[MAX_PATH_LENGTH];
     int loc = 0; /* Location to write to into the buffer */
     while( paths[cur] != NULL ){
         loc = 0; /* Write each given path to the beginning of the buffer */

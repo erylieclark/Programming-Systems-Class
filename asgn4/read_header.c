@@ -9,6 +9,7 @@
 #include "read_header.h"
 #include "create_header.h"
 #include "read_write.h"
+#include "user_input.h"
 
 /*------------------------------------------------------------------------------
 * Function: check_null_header
@@ -21,7 +22,7 @@
 int check_null_header( void ){
     int result = 0;
     const char zero[BLOCK_SIZE] = {0}; /* Create a null buffer to compare to */
-    if( !memcpy(readbuf, zero, BLOCK_SIZE) ){
+    if( !memcmp(readbuf, zero, BLOCK_SIZE) ){
         result = 1;
     }
     return result;
@@ -30,54 +31,265 @@ int check_null_header( void ){
 * Function: separate_header_fields 
 *
 * Description: a tedious function that pulls all of the data in order into the
-*   header struct so that it can be converted to more useful formats later
+*   header struct so that it can be converted to more useful formats later. It
+*   also counts the values of each field and adds them up in order to check the
+*   checksum value. The function will exit if chksum is not valid.
 *
 * param: 
 * return:
 *-----------------------------------------------------------------------------*/
 void separate_header_fields( header_t *header ){
     /* First clear out the wrbuf */
-    char *where = readbuf;
+    int loc = 0;
+    int chksum = 0;
     /* Now copy the contents of the header struct to the wrbuf */
         /* Very tedious.... */
-    where = memcpy( header -> name, *where, NAME_W );
-    where = where + NAME_W;
-    where = memcpy( header -> mode, where, MODE_W );
-    where = where + MODE_W;
-    where = memcpy( header -> uid, where, UID_W );
-    where = where + UID_W;
-    where = memcpy( header -> gid, where, GID_W );
-    where = where + GID_W;
-    where = memcpy( header -> size, where, SIZE_W );
-    where = where + SIZE_W;
-    where = memcpy( header -> mtime, where, MTIME_W );
-    where = where + MTIME_W;
-    where = memcpy( header -> chksum, where, CHKSUM_W );
-    where = where + CHKSUM_W;
-    where = memcpy( header -> typeflag, where, TYPEFLAG_W );
-    where = where + TYPEFLAG_W;
-    where = memcpy( header -> linkname, where, LINKNAME_W );
-    where = where + LINKNAME_W;
-    where = memcpy( header -> magic, where, MAGIC_W );
-    where = where + MAGIC_W;
-    where = memcpy( header -> version, where, VERSION_W );
-    where = where + VERSION_W;
-    where = memcpy( header -> uname, where, UNAME_W );
-    where = where + UNAME_W;
-    where = memcpy( header -> gname, where, GNAME_W );
-    where = where + GNAME_W;
-    where = memcpy( header -> devmajor, where, DEVMAJ_W );
-    where = where + DEVMAJ_W;
-    where = memcpy( header -> devminor, where, DEVMIN_W );
-    where = where + DEVMIN_W;
-    where = memcpy( header -> prefix, where, PREFIX_W );
-    where = where + PREFIX_W;
+    memcpy( header -> name, &readbuf[loc], NAME_W );
+    loc += NAME_W;
+    chksum += chksum_count(header -> name, NAME_W);
+    memcpy( header -> mode, &readbuf[loc], MODE_W );
+    loc += MODE_W;
+    chksum += chksum_count(header -> mode, MODE_W);
+    memcpy( header -> uid, &readbuf[loc], UID_W );
+    loc += UID_W;
+    chksum += chksum_count(header -> uid, UID_W);
+    memcpy( header -> gid, &readbuf[loc], GID_W );
+    loc += GID_W;
+    chksum += chksum_count(header -> gid, GID_W);
+    memcpy( header -> size, &readbuf[loc], SIZE_W );
+    loc += SIZE_W;
+    chksum += chksum_count(header -> size, SIZE_W);
+    memcpy( header -> mtime, &readbuf[loc], MTIME_W );
+    loc += MTIME_W;
+    chksum += chksum_count(header -> mtime, MTIME_W);
+    memcpy( header -> chksum, &readbuf[loc], CHKSUM_W );
+    loc += CHKSUM_W;
+    chksum += (' ')*CHKSUM_W; /* Add checksum as if it is only spaces */
+    memcpy( header -> typeflag, &readbuf[loc], TYPEFLAG_W );
+    loc += TYPEFLAG_W;
+    chksum += chksum_count(header -> typeflag, TYPEFLAG_W);
+    memcpy( header -> linkname, &readbuf[loc], LINKNAME_W );
+    loc += LINKNAME_W;
+    chksum += chksum_count(header -> linkname, LINKNAME_W);
+    memcpy( header -> magic, &readbuf[loc], MAGIC_W );
+    loc += MAGIC_W;
+    chksum += chksum_count(header -> magic, MAGIC_W);
+    memcpy( header -> version, &readbuf[loc], VERSION_W );
+    loc += VERSION_W;
+    chksum += chksum_count(header -> version, VERSION_W);
+    memcpy( header -> uname, &readbuf[loc], UNAME_W );
+    loc += UNAME_W;
+    chksum += chksum_count(header -> uname, UNAME_W);
+    memcpy( header -> gname, &readbuf[loc], GNAME_W );
+    loc += GNAME_W;
+    chksum += chksum_count(header -> gname, GNAME_W);
+    memcpy( header -> devmajor, &readbuf[loc], DEVMAJ_W );
+    loc += DEVMAJ_W;
+    chksum += chksum_count(header -> devmajor, DEVMAJ_W);
+    memcpy( header -> devminor, &readbuf[loc], DEVMIN_W );
+    loc += DEVMIN_W;
+    chksum += chksum_count(header -> devminor, DEVMIN_W);
+    memcpy( header -> prefix, &readbuf[loc], PREFIX_W );
+    loc += PREFIX_W;
+    chksum += chksum_count(header -> prefix, PREFIX_W);
+
+    printf("About to count the remaining bytes.\n");
+    while( loc != BLOCK_SIZE ){ /* Count the remaining bytes that do
+        not belong to a specific field */
+        chksum += readbuf[loc];
+        loc++;
+    }
+    printf("Counted the remaining bytes.\n");
+    /* Convert chksum to an int and compare to counted chksum */
+    if( chksum != (convert_octstr_to_int(header -> chksum, CHKSUM_W)) ){
+        printf("Invalid tar file - chksum does not match.\n");
+        exit( EXIT_FAILURE );
+    }
 
     return;
 }
-    
+/*------------------------------------------------------------------------------
+* Function: verify_header
+*
+* Description: 
+*
+* param:  
+*-----------------------------------------------------------------------------*/
+void verify_header( header_t *header ){
+    /* First check for magic number for ustar */
+    if( strncmp( "ustar" , header -> magic, (MAGIC_W-1)) ){
+        /* First check that the ustar matches, if it doesn't, report and exit */
+        printf("Invalid tar file - magic number not ustar.\n");
+        exit( EXIT_FAILURE );
+    }
+     /* Only complete further checking if Strict (global variable) is enabled */
+    if( strict ){
+        /* Check that ustar is null terminated */
+        if( ((header -> magic)[MAGIC_W-1]) != '\0' ){
+            printf("Invalid tar file - magic number not null terminated.\n");
+            exit( EXIT_FAILURE );
+        }
+        /* Now check the version */
+        else if( strncmp( "00", header -> version, VERSION_W ) ){
+            printf("Invalid tar file - incorrect version.\n");
+            exit( EXIT_FAILURE );
+        }
+    }
+}
 
+/*------------------------------------------------------------------------------
+* Function: stitch_name_together 
+*
+* Description: 
+*
+* param:  
+*-----------------------------------------------------------------------------*/
+void stitch_name_together( header_t *header, verbose_t *verbose ){
+    int loc = 0;
+    int length = 0;
+    /* First check if there is anything in prefix - then check if it fills the
+        buffer or not */
+    if( (header -> prefix)[0] == '\0' ){ /* Nothing in the prefix */
+        printf("nothing in prefix\n"); /* do nothing */
+    }
+    else{ /* If not empty, copy into the verbose buffer */
+        length = strnlen( header -> prefix, PREFIX_W);
+        strncpy( verbose -> name, header -> prefix, length );
+        (verbose -> name)[loc] = '/';
+        loc++;
+        printf("wrote the prefix\n");
+    }
+    loc = length;
+    /* Write a '/' into the next spot in the buffer */
+    /* Write the name into the buffer */
+    if( (header -> name)[0] == '\0' ){ /* Nothing in the name */
+        printf("Invalid header file - nothing in name field.\n");
+        exit( EXIT_FAILURE );
+    }
+    else{ /* If not empty, copy into verbose buffer */
+        printf("about to copy name\n");
+        length = strnlen( header -> name, NAME_W);
+        printf("got length\n");
+        /* COULD BE AN ISSUE WITH NULL TERMINATING THIS */
+        strncpy( &(verbose -> name)[loc], header -> name, length );
+    }
+    printf("got name\n");
+}
+        
+/*------------------------------------------------------------------------------
+* Function: convert_octstr_to_int 
+*
+* Description: 
+*
+* param:  
+*-----------------------------------------------------------------------------*/
+int convert_octstr_to_int( char *h_val, int width ){
+    int res;
+    char *endptr;
+    errno = 0;
 
+    /* Check if the first bit is set */ 
+    if( h_val[0] & 0x80 ){
+        res = extract_special_int( h_val, width );
+    }
+    else{
+        res = strtol( h_val, &endptr, BASE );
+        /* Do error checking as outlined in strtol man page */
+        if( (errno == ERANGE && (res == LONG_MAX || res == LONG_MIN)) || \
+            (errno != 0 && res == 0 )){
+            perror("strtol");
+            return -1; /* REMINDER: FOLLOW THROUGH ON ERROR CHECKING */
+        }
+        else if( endptr == h_val ){
+            printf("No digits were found.\n");
+            return -1; /* HERE TOO ^^^^^^ */
+        }
+    }
+    return res;
+}
+/*------------------------------------------------------------------------------
+* Function: get_type 
+*
+* Description: 
+*
+* param:  
+*-----------------------------------------------------------------------------*/
+char get_type( char flag ){
+    char type;
+    switch( flag ){
+        case '0':
+            type = '-';
+            break;
+        case '\0':
+            type = '-';
+            break;
+        case '2':
+            type = 'l';
+            break;
+        case '5':
+            type = 'f';
+            break;
+        default:
+            printf("This file type is not supported by mytar.\n");
+            return -1;
+    }
+    return type;
+}
+/*------------------------------------------------------------------------------
+* Function: unpack_header_struct
+*
+* Description: 
+*
+* param:  
+*-----------------------------------------------------------------------------*/
+int unpack_header_struct( header_t *header, verbose_t *verbose ){
+    int length;
+ 
+    /* Start by getting stitching the name together */
+    stitch_name_together( header, verbose );
+    printf("stitched name\n"); 
+    /* Take the octal strings in the header struct and turn them into ints */
+    verbose -> mode = convert_octstr_to_int( header -> mode, MODE_W );
+    verbose -> uid = convert_octstr_to_int( header -> uid, UID_W );
+    verbose -> gid = convert_octstr_to_int( header -> gid, GID_W );
+    verbose -> size = convert_octstr_to_int( header -> size, SIZE_W );
+    verbose -> mtime = convert_octstr_to_int( header -> mtime, MTIME_W );
+
+    printf("converted oct to strings\n"); 
+    /* Get the type of file */
+    if( (verbose -> type = get_type( *(header -> typeflag) )) == -1 ){
+        return -1;
+    }
+    printf("got file type\n"); 
+
+    /* Check for a linkname */ /* POSSIBLY NEED TO CONVERT FROM OCTAL?? */
+    if( (header -> linkname)[0] != '\0' ){ /* If there is something in it */
+        length = strnlen( header -> linkname, LINKNAME_W);
+        strncpy( verbose -> linkname, header -> linkname, length );
+    }
+    else{ /* If nothing there, do nothing */ 
+        ; /* Do nothing */
+    }
+    printf("got linkname\n"); 
+
+    /* Now transfer uname and gname */
+    if( (header -> uname)[0] != '\0' ){ /* If there is something in it */
+        length = strnlen( header -> uname, UNAME_W);
+        strncpy( verbose -> uname, header -> uname, length );
+    }
+    else{ /* If nothing there, do nothing */ 
+        ; /* Do nothing */
+    }
+    printf("got uname\n"); 
+    if( (header -> gname)[0] != '\0' ){ /* If there is something in it */
+        length = strnlen( header -> gname, GNAME_W);
+        strncpy( verbose -> gname, header -> gname, length );
+    }
+    else{ /* If nothing there, do nothing */ 
+        ; /* Do nothing */
+    }
+    printf("got gname\n"); 
+    return 0;
 }
 /*------------------------------------------------------------------------------
 * Function: read_header
@@ -86,10 +298,17 @@ void separate_header_fields( header_t *header ){
 *   send the header off to.
 *
 * param: option - 
-* return: returns 1 if a null header, 0 on success, -1 if it is invalid 
+* return: returns -1 if a null header, and number of blocks otherwise 
 *-----------------------------------------------------------------------------*/
-void read_header( void /*void(*option)(header_t header) */ ){
+int read_header( verbose_t *verbose ){
+    int num_blocks = 0;
     header_t *header;
+
+    /* Check for a Null header */    
+    if( check_null_header() ){
+        return -1; /* Return a 1 if it is a null header */
+    }
+    printf("Checked null header.\n");
 
     /* Create a new header struct to store the info */
     header = (header_t *) malloc(sizeof(header_t));
@@ -97,23 +316,46 @@ void read_header( void /*void(*option)(header_t header) */ ){
         perror("malloc header");
         exit( EXIT_FAILURE );
     }
+    printf("malloc'd fine\n");
 
     /* Set all fields to empty */
     initialize_header_struct( header );
-
-    /* Check for a Null header */    
-    if( check_null_header() ){
-        return 1; /* Return a 1 if it is a null header */
-    }
-    
+    printf("initialized\n");
     /* Now start pulling all the contents into the header struct for easy
-        parsing */
-    separate_header_fields();
-
-    /* Perform the next part: either list or extract */ 
-/*    (*option)( header ); */ /* Call whichever function was given to read_header */
-
+        parsing, validate the value of chcksum simultaneously */
+    separate_header_fields( header );
+    printf("separated header fields\n");    
+    /* Verify Header - check magic number and version (if strict) */ 
+    verify_header( header );
+    printf("verified header\n");
+    /* Get info into computer friendly format */
+    unpack_header_struct( header, verbose ); 
+    printf("unpacked header\n");
+    /* Get the number of blocks to read for this file */
+    num_blocks = get_content_size( verbose -> size );
+    printf("got content size\n");
+    /* Pass back the header */
+    return num_blocks;
 }
 
+/*------------------------------------------------------------------------------
+* Function: extract_special_int 
+*
+* Description: For the interoperability with GNU tar, GNU seems to set the high-
+*   order bit of the first byte, then treate the rest of the field as a binary
+*   integer in network byte order. This only supports 32 bit int.
+*
+* param:  
+* return: returns -1 on failure, and the integer on success
+*-----------------------------------------------------------------------------*/
+uint32_t extract_special_int( char *where, int len ){
+    int32_t val = -1;
 
+    if( (len >= sizeof(val)) && (where[0] & 0x80 )){
+        /* The top bit is set and we have space to extract the last four bytes */
+        val = *(int32_t *)(where + len - sizeof(val));
+        val = ntohl(val);
+    }
+    return val;
+}
 

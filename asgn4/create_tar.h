@@ -19,8 +19,6 @@
 #include <dirent.h>
 #include <errno.h>
 
-#define HEADER_PATH_MAX 100
-
 struct dirent *read_dir( DIR *d_pntr, const char *path );
 int add_to_path( char path[], int loc, const char *d_name );
 void recurse_files_and_create( FILE *fd, char *path, int loc );
