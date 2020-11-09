@@ -222,13 +222,15 @@ char ** get_paths( int argc, char **argv, int mode ){
     }
     /* Store pointers into the buffer */
     while( i < num_paths ){
-        /* First check that the path exists */
-        if( (lstat( argv[cur_path], &statbuf )) == -1 ){ 
-            perror(argv[cur_path]); /* Check return values */
-            cur_path++; /* Get the next input argument */
-            i++;
-            continue; 
-        } 
+        if( mode == CREATE ){
+            /* First check that the path exists */
+            if( (lstat( argv[cur_path], &statbuf )) == -1 ){ 
+                perror(argv[cur_path]); /* Check return values */
+                cur_path++; /* Get the next input argument */
+                i++;
+                continue; 
+            }
+        }
         paths[act_paths] = argv[cur_path];
         cur_path++;
         i++;

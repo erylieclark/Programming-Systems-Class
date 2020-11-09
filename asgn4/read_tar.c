@@ -66,13 +66,58 @@ void print_time( time_t *mtime ){
         (t_st -> tm_mon)+1, t_st -> tm_mday, t_st -> tm_hour, t_st -> tm_min );
 }
 /*------------------------------------------------------------------------------
+* Function: check_requested_paths 
+*
+* Description: 
+*
+* param:  
+*-----------------------------------------------------------------------------*/
+int check_requested_paths( char *cur, char **req ){
+    int len_req, i = 0;
+    int len_cur = strlen( cur ); /* Get the length of the current path */
+    int check = 0;
+    /* First check if there are any paths */
+    if( *req == NULL ){
+        check++; /* The current path is a valid one , because the user did
+            not request any specific ones */
+        return check; 
+    }
+    /* Now Cycle through the paths to see if the current path matches any of
+        the requested paths. We want to compare only the least amount of chars
+        in either path to tell if this file/directory is a part of the requested
+        path or possibly an extension of it */
+    while( req[i] != NULL ){
+        len_req = strlen( req[i] );
+        len_cur = len_req > len_cur ? len_cur : len_req; /* get the shortest */
+        if( strncmp( cur, req[i], len_cur ) ){
+            /* The strings do not match, check the next requested path */
+            i++;
+        }
+        else{ /* The paths do match, so continue working with this file */
+            check++;
+            break;
+        }
+    }
+    return check;
+}
+/*------------------------------------------------------------------------------
 * Function: list_tar 
 *
 * Description: 
 *
 * param:  
 *-----------------------------------------------------------------------------*/
-void list_tar( verbose_t *verbose, FILE *fd, int num_blocks ){
+void list_tar( verbose_t *verbose, FILE *fd, int num_blocks, char **paths ){
+    /* Compare the current path with the requeste paths */
+    if( !check_requested_paths( verbose -> name, paths ) ){ /* no match */
+        /* Skip to the next header based on num_blocks */
+        if( (fseek( fd, BLOCK_SIZE*num_blocks , SEEK_CUR )) ){
+            perror("fseek");
+            exit( EXIT_FAILURE );
+        }
+        return; /* Go back without extracting this file or directory */
+    }
+    
     if( verb_list ){
         printf("%c", verbose -> type ); /* Print the type first */
         write_permissions( verbose -> mode );
@@ -163,10 +208,19 @@ FILE *create_item_type( verbose_t *verbose ){
         case 'd':
             if (mkdir( verbose -> name, (verbose -> mode) &\
                 (S_IXUSR | S_IXGRP | S_IXOTH )? 0777 : 0666 )){
-                perror("mkdir");
-                exit( EXIT_FAILURE );
+                if( errno == EEXIST ){
+                    wrfd = NULL;
+                }
+                else{
+                    perror("mkdir");
+                    exit( EXIT_FAILURE );
+                }
             }
             wrfd = NULL;
+            break;
+        default:
+            wrfd = NULL; /* If it is somehow something else, return without
+                            doing anything */
             break;
     }
     return wrfd;
@@ -178,47 +232,37 @@ FILE *create_item_type( verbose_t *verbose ){
 *
 * param:  
 *-----------------------------------------------------------------------------*/
-void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks ){
-    static char last_path[MAX_PATH_LENGTH] = {0};
+void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks,\
+        char **paths ){
     FILE *wrfd;
-    int length;
-    /* get the length of last_path string */
-    length = strlen( last_path );
-    /* Compare the first *length* characters between this path and last */
-    if( length != 0 ){
-        if( strncmp( last_path, verbose -> name, length ) ){
-            /* They are not equal */
-            /* Parse the name and look for the directories, create them if they
-                don't already exist */
+
+    /* Compare the current path with the requeste paths */
+    if( !check_requested_paths( verbose -> name, paths ) ){ /* no match */
+        /* Skip to the next header based on num_blocks */
+        if( (fseek( rdfd, BLOCK_SIZE*num_blocks , SEEK_CUR )) ){
+            perror("fseek");
+            exit( EXIT_FAILURE );
         }
-            /* Create the new item???? */
-            wrfd = create_item_type( verbose );
+        return; /* Go back without extracting this file or directory */
     }
-    else{
-        /* Get the length of the string in path if there are any paths and the current file/directory */
-        /* Get the smallest length, and compare that portion of the strings */
-        /* If they are not the same, check the next path, or skip the file if no more paths */
-        /* If they are the same, create the directory/file of the smallest length */
-        /* Use a function to do this */
-        /* Compare to paths */
-        /* Parse the name and look for directories, create if nonexistant */
-    }
-     
+    /* otherwise, this is a match, proceed with extracting this file */
     wrfd = create_item_type( verbose );
+     
     /* Check if the item is a directory, file, or symlink */
-    /* Create the item */
-    if( wrfd == NULL ){
-        if( verbose -> type == 'd' ){
-            strncpy( last_path, verbose -> name , MAX_PATH_LENGTH );
-        }
-        else{
-            memset( last_path, '\0', MAX_PATH_LENGTH );
+    if( wrfd == NULL ){ /* Null if it is a directory or symlink */
+        /* Just in case it is something else that has a size, seek to the next
+            header */
+        if( (fseek( rdfd, BLOCK_SIZE*num_blocks , SEEK_CUR )) ){
+            perror("fseek");
+            exit( EXIT_FAILURE );
         }
     }
     else{
         restore_file_contents( wrfd, rdfd, num_blocks, verbose -> size );
+        if( verb_list ){
+            printf("%s\n", verbose -> name );
+        }
     }
-
 }
 /*------------------------------------------------------------------------------
 * Function: read_tar 
@@ -229,7 +273,7 @@ void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks ){
 *-----------------------------------------------------------------------------*/
 
 void read_tar( FILE *fd, char **paths, void(*option)(verbose_t *verbose,\
-        FILE *fd, int num_blocks) ){
+        FILE *fd, int num_blocks, char **paths) ){
     int cur = 0;
     char path_buf[MAX_PATH_LENGTH];
     int loc = 0; /* Location to write to into the buffer */
@@ -255,7 +299,7 @@ void read_tar( FILE *fd, char **paths, void(*option)(verbose_t *verbose,\
         else{ /* The header is valid and can be used */
             /* REMINDER: ISSUE HERE WHERE NULL BLOCKS COULD NOT BE SUCCESSIVE */
             null_blocks = 0; /* Null blocks must be together */
-            option( verbose, fd, num_blocks );
+            option( verbose, fd, num_blocks, paths );
         }
     }
     free( verbose );

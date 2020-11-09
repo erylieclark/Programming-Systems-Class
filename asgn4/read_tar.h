@@ -29,13 +29,15 @@
 void write_permission( int mode );
 void print_uname_gname( char *uname, char *gname );
 void print_time( time_t *mtime );
-void list_tar( verbose_t *verbose, FILE *fd, int num_blocks );
+void list_tar( verbose_t *verbose, FILE *fd, int num_blocks, char **paths );
 void initialize_verbose_struct( verbose_t *verbose );
 int restore_attributes( verbose_t *verbose );
 FILE *create_item_type( verbose_t *verbose );
-void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks );
+int check_requested_paths( char *cur, char **req );
+void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks,\
+	char **paths );
 void read_tar( FILE *fd, char **paths, void(*option)(verbose_t *verbose,\
-	FILE *fd, int num_blocks ) );
+	FILE *fd, int num_blocks, char **paths ) );
 
 
 

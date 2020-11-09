@@ -37,7 +37,7 @@ memcheck_enc: mytar
 
 .PHONY: debug
 debug: mytar 
-	gdb --args ./$< xvf tarfile
+	gdb --args ./$< xf tarfile.exp
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"
