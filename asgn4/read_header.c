@@ -1,7 +1,9 @@
 /*******************************************************************************
 * File: read_header.c
 *
-* Description:
+* Description: this file contains the functions that help separate all of the
+*   fields within the header block and convert them into a more computer
+*   usable format
 *
 * Author: Erin Rylie Clark
 *******************************************************************************/
@@ -14,9 +16,8 @@
 /*------------------------------------------------------------------------------
 * Function: check_null_header
 *
-* Description: 
+* Description: check if this header is completely blank 
 *
-* param: 
 * return: returns 1 if a null header, 0 on not a null header
 *-----------------------------------------------------------------------------*/
 int check_null_header( void ){
@@ -35,8 +36,7 @@ int check_null_header( void ){
 *   also counts the values of each field and adds them up in order to check the
 *   checksum value. The function will exit if chksum is not valid.
 *
-* param: 
-* return:
+* param: header - the header struct to copy all the strings into
 *-----------------------------------------------------------------------------*/
 void separate_header_fields( header_t *header ){
     /* First clear out the wrbuf */
@@ -103,20 +103,19 @@ void separate_header_fields( header_t *header ){
         printf("Invalid tar file - chksum does not match.\n");
         exit( EXIT_FAILURE );
     }
-
-    return;
 }
 /*------------------------------------------------------------------------------
 * Function: verify_header
 *
-* Description: 
+* Description: this function checks the magic number for ustar and checks the
+*   version if strict is enable 
 *
-* param:  
+* param: header - the header struct to look at for the magic and version
 *-----------------------------------------------------------------------------*/
 void verify_header( header_t *header ){
-    /* First check for magic number for ustar */
+    /* First check magic number for ustar */
     if( strncmp( "ustar" , header -> magic, (MAGIC_W-1)) ){
-        /* First check that the ustar matches, if it doesn't, report and exit */
+        /* Check that the ustar matches, if it doesn't, report and exit */
         printf("Invalid tar file - magic number not ustar.\n");
         exit( EXIT_FAILURE );
     }
@@ -134,13 +133,14 @@ void verify_header( header_t *header ){
         }
     }
 }
-
 /*------------------------------------------------------------------------------
 * Function: stitch_name_together 
 *
-* Description: 
+* Description: take the prefix and name fields from the header struct and 
+*   stitch them together with a '/' in between
 *
-* param:  
+* param: header - the header struct containing the prefix and name to read
+* param: verbose - the verbose struct to transfer the full name into
 *-----------------------------------------------------------------------------*/
 void stitch_name_together( header_t *header, verbose_t *verbose ){
     int loc = 0;
@@ -153,11 +153,11 @@ void stitch_name_together( header_t *header, verbose_t *verbose ){
     else{ /* If not empty, copy into the verbose buffer */
         length = strnlen( header -> prefix, PREFIX_W);
         strncpy( verbose -> name, header -> prefix, length );
+        /* Write a '/' into the next spot in the buffer */
         (verbose -> name)[loc] = '/';
         loc++;
     }
     loc = length;
-    /* Write a '/' into the next spot in the buffer */
     /* Write the name into the buffer */
     if( (header -> name)[0] == '\0' ){ /* Nothing in the name */
         printf("Invalid header file - nothing in name field.\n");
@@ -173,9 +173,11 @@ void stitch_name_together( header_t *header, verbose_t *verbose ){
 /*------------------------------------------------------------------------------
 * Function: convert_octstr_to_int 
 *
-* Description: 
+* Description: convert the octal string back to an integer so that the value
+*   is in a computer readable format 
 *
-* param:  
+* param: h_val - the string stored in the header struct
+* param: width - the width of the field in the header struct
 *-----------------------------------------------------------------------------*/
 int convert_octstr_to_int( char *h_val, int width ){
     int res;
@@ -204,9 +206,11 @@ int convert_octstr_to_int( char *h_val, int width ){
 /*------------------------------------------------------------------------------
 * Function: get_type 
 *
-* Description: 
+* Description: get the type of file and send back the character that is
+*   supposed to be displayed when printing out the permissions of a file 
 *
-* param:  
+* param: flag - the typeflag from the header struct
+* return: type - the new character representing the type
 *-----------------------------------------------------------------------------*/
 char get_type( char flag ){
     char type;
@@ -232,15 +236,20 @@ char get_type( char flag ){
 /*------------------------------------------------------------------------------
 * Function: unpack_header_struct
 *
-* Description: 
+* Description: this function takes out certain values and converts them from an
+*   octal string to an integer value. It will also verify the other fields that
+*   it does not necessarily need later for the creation of the file, but it
+*   does help determine if this block is even a valid readable header block. 
 *
-* param:  
+* param: header - the header struct containing the separated strings
+* param: verbose - the verbose struct to store the converted integers
 *-----------------------------------------------------------------------------*/
 int unpack_header_struct( header_t *header, verbose_t *verbose ){
     int length;
  
     /* Start by getting stitching the name together */
     stitch_name_together( header, verbose );
+
     /* Take the octal strings in the header struct and turn them into ints */
     verbose -> mode = convert_octstr_to_int( header -> mode, MODE_W );
     verbose -> uid = convert_octstr_to_int( header -> uid, UID_W );
@@ -250,7 +259,8 @@ int unpack_header_struct( header_t *header, verbose_t *verbose ){
 
     /* Get the type of file */
     if( (verbose -> type = get_type( *(header -> typeflag) )) == -1 ){
-        return -1;
+        printf("%s: File type not supported by mytar.\n", verbose -> name );
+        exit( EXIT_FAILURE );
     }
 
     /* Check for a linkname */ /* POSSIBLY NEED TO CONVERT FROM OCTAL?? */
@@ -282,11 +292,15 @@ int unpack_header_struct( header_t *header, verbose_t *verbose ){
 /*------------------------------------------------------------------------------
 * Function: read_header
 *
-* Description: this function takes int a pointer to a function that it should
-*   send the header off to.
-*
-* param: option - 
-* return: returns -1 if a null header, and number of blocks otherwise 
+* Description: this function is responsible for extracting the values out of 
+*   the header block in the tar file and separating out the values before
+*   returning them to a computer readable format. It will only grab out the
+*   values it will later need, and verifies the remainder without moving them.
+ 
+* param: verbose - the verbose struct containing the info needed to recreate
+*   the file
+* return: returns -1 if a null header, -2 if the file type is not supported,
+*   and number of blocks otherwise 
 *-----------------------------------------------------------------------------*/
 int read_header( verbose_t *verbose ){
     int num_blocks = 0;
@@ -312,7 +326,7 @@ int read_header( verbose_t *verbose ){
     /* Verify Header - check magic number and version (if strict) */ 
     verify_header( header );
     /* Get info into computer friendly format */
-    unpack_header_struct( header, verbose ); 
+    unpack_header_struct( header, verbose );
     /* Get the number of blocks to read for this file */
     num_blocks = get_content_size( verbose -> size );
     /* Pass back the header */
@@ -326,8 +340,10 @@ int read_header( verbose_t *verbose ){
 *   order bit of the first byte, then treate the rest of the field as a binary
 *   integer in network byte order. This only supports 32 bit int.
 *
-* param:  
+* param: where - where to read the string from
+* param: len - the length of the buffer reading from 
 * return: returns -1 on failure, and the integer on success
+* This function was provided by Dr Nico - Cal Poly SLO
 *-----------------------------------------------------------------------------*/
 uint32_t extract_special_int( char *where, int len ){
     int32_t val = -1;

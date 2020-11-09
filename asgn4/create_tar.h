@@ -1,7 +1,8 @@
 /*******************************************************************************
 * File: create_tar.h
 *
-* Description: 
+* Description: this file contains the functions that handle turning all of the
+*   paths that the user wants archived into a tarfile  
 *
 * Author: Erin Rylie Clark
 *******************************************************************************/

@@ -2,8 +2,8 @@
 * File: user_input.h
 *
 * Description: header file for the functions that primarily deal with the user
-*   input. This includes reading optional input from the user and opening the
-*   files and returning a pointer.
+*   input. This includes reading optional input from the user, opening the
+*   files, and determining if the inputs are valid.
 *
 * Author: Erin Rylie Clark
 *******************************************************************************/
@@ -11,6 +11,7 @@
 #ifndef _USER_INPUT_H
 #define _USER_INPUT_H
 
+/* System Header Files */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,13 +24,14 @@
 extern int verb_list;
 extern int strict;
 
+/* Modes */
 #define CREATE 0x01
 #define LIST 0x02
 #define EXTRACT 0x04
 #define VERB 0x08
 #define FARCH 0x10
 #define STRICT 0x20
-
+/* Input Arguments */
 #define MIN_INPUTS 3
 #define OPT_ARG 1
 #define TAR_ARG 2

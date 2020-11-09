@@ -2,14 +2,16 @@
 * File: user_input.c
 *
 * Description: this contains open_file and read_optional_input to take any
-*  input from the user and return a pointer to the location to start reading
-*  words from.
+*   input from the user, validate it, and return a pointer to the file to read
+*   or write to along with an array of pointers to the paths that the user
+*   specifies.
 *
 * Author: Erin Rylie Clark
 *
 *******************************************************************************/
 
 #include "user_input.h"
+
 /* Global Variables */
 int verb_list = 0;
 int strict = 0;
@@ -18,13 +20,14 @@ int strict = 0;
 * Function: validate_options 
 *
 * Description: This function will take the options with the set bits and check
-*   that the 'f' option was given, that only one of 'c', 't', 'x' arguments is
-*   give, and that the 'v' argument is only given with the 't' argument.
+*   that the 'f' option was given, and that only one of 'c', 't', 'x' arguments
+*   is given. It will also set the global variables for verbose and strict, if
+*   they were requested by the user.
 *
 * param: options - the character that holds the set bits from the option inputs 
 *-----------------------------------------------------------------------------*/
 void validate_options( char options ){
-    int CTX = 0; /* Flag to indicate if one of the options has been set */
+    char CTX = 0; /* Flag to indicate if one of the options has been set */
 
     /* Check first that f is there */
     if( !(options & FARCH) ){
@@ -32,6 +35,7 @@ void validate_options( char options ){
         printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
         exit( EXIT_FAILURE );
     }
+    
     /* Now check that only one of 'c' 't' 'x' is set */
     if( options & CREATE ){ /* Check for 'c' */
         CTX = 1; /* Set the flag if 'c' was selected */
@@ -62,6 +66,7 @@ void validate_options( char options ){
         printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
         exit( EXIT_FAILURE );
     }
+
     /* Set the global variables for verbose and strict */
     if( options & VERB ){
         verb_list = 1;
@@ -75,10 +80,12 @@ void validate_options( char options ){
 * Function: read_optional_input 
 *
 * Description: This function will take the command line input and parse it out
-*   to determine if the user has input valid arguments. It will return an error
-*   and exit if the input is not valid. 
+*   to determine if the user has input valid arguments. It will give an error
+*   message and exit if the input is not valid.
 *
 * param: argc, argv - both inputs from the command line
+* return: options - the variable with certain bits set, indicating the options
+*   selected by the user
 *-----------------------------------------------------------------------------*/
 int read_optional_input(int argc, char **argv){
     int i; 
@@ -129,8 +136,14 @@ int read_optional_input(int argc, char **argv){
 /*------------------------------------------------------------------------------
 * Function: open_file
 *
-* Description: This function opens the file and returns a file descriptor if
-*   successful, and produces an error if not.
+* Description: This function opens the file given in the tar argument location
+*   and returns a file descriptor if it was successful. If it is reading a
+*   tarfile, it will check that the size is a multiple of 512 and will exit if
+*   not. The purpose of this is to catch the error before we do any more work.
+*   I am opening the tarfiles as read/write when reading them only because
+*   fopen will fail if it is a directory. This could cause some problems later
+*   on but is unlikely to as long as I never try to write to the file. I could
+*   add a line to freopen the file with a different mode.
 *
 * param: argv - the file to attempt to open
 * param: mode - the way to open the file - mainly read, write, or read/write.
@@ -138,20 +151,22 @@ int read_optional_input(int argc, char **argv){
 * return: returns a fd on successful read, exits on failure
 *-----------------------------------------------------------------------------*/
 FILE *open_file( char *argv, int mode ){
-    FILE *fd;
-    int check_size = 0; 
+    FILE *fd; /* The tarfile to read or write to */
+    int check_size = 0; /* Do an early check of the size of the file 
+        if we are extracting or listing, to verify it could be a tarfile */
     struct stat statbuf = {0};
+    
     switch(mode){
         case LIST: 
-            check_size = 1;
+            check_size = 1; /* Check the size if reading a tarfile */
             fd = fopen( argv, "r+");
-                /* Open as read only, the + means fopen will fail if its a
+                /* Open as read/write, the + causes fopen to fail if its a
                     directory */
             break;
         case EXTRACT: 
-            check_size = 1;
+            check_size = 1; /* Check the size if reading a tarfile */
             fd = fopen( argv, "r+");
-                /* Open as read only, the + means fopen will fail if its a
+                /* Open as read/write, the + causes fopen to fail if its a
                     directory */
             break;
         case CREATE:
@@ -179,11 +194,9 @@ FILE *open_file( char *argv, int mode ){
             printf("Not a valid tar file - size not a multiple of 512.\n");
             exit( EXIT_FAILURE );
         }
-        
     }
     return fd;
 }
-
 
 /*------------------------------------------------------------------------------
 * Function: get_paths
@@ -192,11 +205,13 @@ FILE *open_file( char *argv, int mode ){
 *   by the user in argv. It is used to separate the paths from the other inputs
 *   and to have an easy way to pass the paths between functions. If there are
 *   no path arguments, it will return a NULL pointer to tell main to simply
-*   return an empty file. 
+*   return an empty file if creating. 
 *
-* param: paths
+* param: argc - the number of command line args
+* param: argv - an array of the command line args
+* param: mode - create, list, or extract
 * 
-* return: returns a pointer to the buffer or NULL if no path arguments
+* return: returns a pointer to the buffer
 *-----------------------------------------------------------------------------*/
 char ** get_paths( int argc, char **argv, int mode ){
     int i = 0; /* Keep track of how many paths we've stored */
@@ -207,23 +222,25 @@ char ** get_paths( int argc, char **argv, int mode ){
             first spot where a path could be */
     char **paths;
     struct stat statbuf = {0};
-    if( mode == CREATE ){
+    /* I believe the two null blocks are taken care of in create_tar
+    if( mode == CREATE ){ 
         if( num_paths == 0 ){
             printf( "No paths given.\n" );
             return NULL;
         }
     }
-
+*/
     /* Create a buffer to hold the pointers to each of the paths */
     if( (paths = (char**) malloc(sizeof(char*)*(num_paths+1))) == NULL ){
             /* Add one to insert a NULL pointer at the end */
         perror( "malloc path buffer" );
         exit( EXIT_FAILURE );
     }
+
     /* Store pointers into the buffer */
     while( i < num_paths ){
-        if( mode == CREATE ){
-            /* First check that the path exists */
+        if( mode == CREATE ){ /* Only check the paths in create mode */
+            /* Check that the paths exist */
             if( (lstat( argv[cur_path], &statbuf )) == -1 ){ 
                 perror(argv[cur_path]); /* Check return values */
                 cur_path++; /* Get the next input argument */
@@ -231,25 +248,15 @@ char ** get_paths( int argc, char **argv, int mode ){
                 continue; 
             }
         }
-        paths[act_paths] = argv[cur_path];
-        cur_path++;
+        paths[act_paths] = argv[cur_path]; /* Transfer the valid argument */
+        cur_path++; /* Analyze the next path */
         i++;
         act_paths++; /* This path is valid, so add another */
     }
 
     /* Add a NULL into the buffer after the last path is added */
-        /* Could resize the buffer here instead if we wanted */
-    
-    /* REMINDER: THIS COULD CAUSE A SEGFAULT IF DON'T ADD 1 TO MALLOC */
     paths[act_paths] = NULL;
 
-return paths;
-
+    return paths;
 }
-
-
-
-
-
-
 

@@ -63,6 +63,7 @@ struct header{
 	char devminor[DEVMIN_W];
 	char prefix[PREFIX_W];
 };
+
 void initialize_header_struct( header_t *header );
 void write_pathname( header_t *header, char path[] );
 void convert_to_header_format( uint32_t val, int width, char buf[] );
@@ -70,7 +71,7 @@ int set_typeflag_and_linkname( struct stat, header_t*, char path[] );
 void set_magic_and_v( header_t *header );
 void get_uname_gname( struct stat file_st, header_t *header );
 int chksum_count( char buf[], int width );
-void get_info( struct stat file_st, header_t *header, char path[] );
+int get_info( struct stat file_st, header_t *header, char path[] );
 int create_header( struct stat file_st, char path[] );
 int get_content_size( int size );
 void write_to_output_buffer( header_t *header );

@@ -1,24 +1,30 @@
 /*******************************************************************************
 * File: create_header.c
 *
-* Description:
+* Description: this file deals primarily with getting the info from the stat
+*   struct of a file and formatting the values before transferring them into
+*   a header struct that makes it easier to write the full header to the 
+*   tarfile.
 *
 * Author: Erin Rylie Clark
 *******************************************************************************/
 
 #include "create_header.h"
 #include "read_write.h"
-/*
-#define MYOTCTAL
+
+/* if wanting to get devmajor and devminor values. For this program, leave alone
 #define DEVS
 */
 
 /*------------------------------------------------------------------------------
 * Function: initialize_header_struct
 *
-* Description: 
+* Description: Clear out all of the fields in the header struct, so that if a
+*   value does not take up its alotted width, the remainder will be nulls as
+*   opposed to garbage values. This also helps with string termination if
+*   necessary
 *
-* param:  
+* param: header - the header struct containing the fields
 *-----------------------------------------------------------------------------*/
 void initialize_header_struct( header_t *header ){
 
@@ -38,18 +44,19 @@ void initialize_header_struct( header_t *header ){
     memset( header -> devmajor, '\0', DEVMAJ_W );
     memset( header -> devminor, '\0', DEVMIN_W );
     memset( header -> prefix, '\0', PREFIX_W );
-
-    return;
 }
-
 /*------------------------------------------------------------------------------
 * Function: write_pathname
 *
-* Description: 
+* Description: this function takes in the path name and splits it into the
+*   prefix and name header fields as necessary. It fills the name field as much
+*   as it can while still splitting on a '/' 
 *
-* param:  
+* param: header - the header struct to write the path into
+* param: path - the path to copy into the header struct
+* return: -1 on failure, 0 on success
 *-----------------------------------------------------------------------------*/
-void write_pathname( header_t *header, char path[] ){
+int write_pathname( header_t *header, char path[] ){
     strncpy( header -> name, path, NAME_W );
 }
 
@@ -68,43 +75,25 @@ void write_pathname( header_t *header, char path[] ){
 *   THE STRICT FLAG IS SET
 *-----------------------------------------------------------------------------*/
 void convert_to_header_format( uint32_t val, int width, char buf[] ){
-    int err = 0;
-
-    sprintf( buf, "%0*o", (width-1), val);
-    if( buf[width-1] != '\0' ){ /* If the int is too big to write as octal */
-        memset( buf, '\0', width ); /* Blank out the buffer again */
-        if( insert_special_int( buf, width, val )){
-            err++; /* Failed to insert the int */
-        }
-    }
-        
-
-
-#ifdef MYOCTAL    
-    while( i < (width - 1) ){
-        oct = val & mask; /* Get the first octal digit and convert to char */
-        buf[i] = '0' + oct; /* Add the octal character into the buffer */
-        val = val >> 3; /* Shift the next 3 bits into the LSB bits */
-        i++;
-        if( val < 1 ){ /* If zero, don't get any more octal digits */
-            break;
-        }
-    }
     
-    if( val > 0 ){ /* If the value is still greater than zero, it will not fit
-        into the allotted number of octal digits, use given functions to 
-        convert it into the appropriate format */
-        if( insert_special_int( buf, width, orig_val )){
-            err++; /* Failed to insert the int */
+    /* Try putting the value into the buffer as an octal string */
+    sprintf( buf, "%0*o", (width-1), val); 
+
+    /* If it wrote into the last spot in the buffer, its too big */
+    if( buf[width-1] != '\0' ){ /* Too big to write as octal */
+        memset( buf, '\0', width ); /* Blank out the buffer again */
+        if( !strict ){
+            if( insert_special_int( buf, width, val )){
+                printf("Val cannot be written to the header field.\n");
+                exit( EXIT_FAILURE );
+            }
+        }
+        else{
+            printf("Val cannot be written to the header\
+                field in strict mode.\n");
+            exit( EXIT_FAILURE );
         }
     }
-    else{ /* Place a '\0' into the rest of the buffer */
-        while( i < width ){
-            buf[i] = '\0';
-            i++;
-        } /* REMINDER: COULD DO MEMSET HERE?????? */
-    }
-#endif
 } 
 /*------------------------------------------------------------------------------
 * Function: set_typeflag_and_linkname
@@ -118,6 +107,7 @@ void convert_to_header_format( uint32_t val, int width, char buf[] ){
 * param: file_st - the structure containing the lstat info on the file
 * param: header - the header struct to place the collected info into
 * param: path - the path of the file we are currently looking at
+* return: 0 on success, nonzero on failure
 *-----------------------------------------------------------------------------*/ 
 int set_typeflag_and_linkname( struct stat file_st,\
         header_t *header, char path[] ){ 
@@ -167,7 +157,7 @@ void set_magic_and_v( header_t *header ){
 *
 * Description: This function will get the user name based on the user id as well
 *   as the group name, and copy them into the header struct in their appropriate
-*   spots. 
+*   spots. If it fails to get the symbolic names, it will use the numeric ones. 
 *
 * param: file_st - the structure containing the lstat info on the file
 * param: header - the header struct to place the collected info into
@@ -175,21 +165,33 @@ void set_magic_and_v( header_t *header ){
 void get_uname_gname( struct stat file_st, header_t *header ){
     struct passwd *pw;
     struct group *gp;
-
+    errno = 0; /* Set errno to zero before the call to check if it changed */
     pw = getpwuid( file_st.st_uid );
-    strncpy( header -> uname, pw->pw_name, (UNAME_W-1) );
+    if( pw == NULL ){ /* If we can't get the symbolic name, use numeric */
+        perror("getpwuid");
+        convert_to_header_format( file_st.st_uid, UNAME_W, header -> uname );
+    }
+    else{   
+        strncpy( header -> uname, pw->pw_name, (UNAME_W-1) );
+    }
 
     gp = getgrgid( file_st.st_gid );
-    strncpy( header -> gname, gp->gr_name, (GNAME_W-1) );
+    if( gp == NULL ){ /* If we can't get the symbolic name, use numeric */
+        perror("getgrgid");
+        convert_to_header_format( file_st.st_gid, GNAME_W, header -> gname );
+    }
+    else{
+        strncpy( header -> gname, gp->gr_name, (GNAME_W-1) );
+    }
 }
-
 /*------------------------------------------------------------------------------
 * Function: chksum_count 
 *
-* Description: This function will get the user id and the group id, and format
-*   them correctly before placing them back into the header struct.
+* Description: This function counts the value of all the chars in each field of
+*   the header struct in order to determine the chksum value.
 *
-* param:  
+* param: buf - the buffer to count the chars in
+* param: width - the width of the buffer, to be able to count all of the chars
 *-----------------------------------------------------------------------------*/
 int chksum_count( char buf[] , int width ){
     int i = 0;
@@ -200,17 +202,18 @@ int chksum_count( char buf[] , int width ){
     }
     return count;
 }
-
 /*------------------------------------------------------------------------------
-* Function:  
+* Function: get_info 
 *
-* Description: This function will get the user id and the group id, and format
-*   them correctly before placing them back into the header struct.
+* Description: 
 *
-* param:  
+* param: file_st - the stat structure returned by lstat-ing the file
+* param: header - the header struct to transfer all of the stat info to
+* param: path - the path of the file
 *-----------------------------------------------------------------------------*/
-void get_info( struct stat file_st, header_t *header, char path[] ){
+int get_info( struct stat file_st, header_t *header, char path[] ){
     int chksum = 0;
+    int err = 0;
     /* Mode */
     convert_to_header_format( (file_st.st_mode & ~S_IFMT), MODE_W,\
         header -> mode ); 
@@ -232,6 +235,7 @@ void get_info( struct stat file_st, header_t *header, char path[] ){
     if( set_typeflag_and_linkname( file_st, header, path )){
         /* There was an error */
         printf("Error with typeflag and linkname.\n");
+        err++;
     }
     chksum += chksum_count( header -> typeflag, TYPEFLAG_W );
     chksum += chksum_count( header -> linkname, LINKNAME_W );
@@ -249,27 +253,36 @@ void get_info( struct stat file_st, header_t *header, char path[] ){
         DEVMAJ_W, header -> devmajor);
     convert_to_header_format( minor(file_st.st_dev),\
         DEVMIN_W, header -> devminor);
+#endif
     chksum += chksum_count( header -> devmajor, DEVMAJ_W );
     chksum += chksum_count( header -> devminor, DEVMIN_W );
-#endif
     /* Be sure to add the path name to the chksum count */
     chksum += chksum_count( header -> name, NAME_W );
     chksum += chksum_count( header -> prefix, PREFIX_W );
     /* Chksum */
     chksum += (' ')*CHKSUM_W; /* Assume chksum is all spaces and add to count */
     convert_to_header_format( chksum, CHKSUM_W, header -> chksum ); 
+    
+    return err;
 }
 
 /*------------------------------------------------------------------------------
 * Function: create_header
 *
-* Description: 
+* Description: this function takes in the stat structure on a file and transfers
+*   the information into a header struct in the appropriate format for a tar
+*   file. It will transfer the information to the buffer to be written to the
+*   tarfile but does not write it - the calling function will first verify the
+*   validity of everything else before writing it.
 *
-* param:  
+* param: file_st - the struct stat returned from lstat-ing the file
+* param: path - the file path
+* return: num_blocks on success, -1 on failure
 *-----------------------------------------------------------------------------*/
 int create_header( struct stat file_st, char path[] ){
     header_t *header;
     int num_blocks;
+    int err = 0;
 
     /* Create a new header struct to store the info */
     header = (header_t *) malloc(sizeof(header_t));
@@ -282,9 +295,14 @@ int create_header( struct stat file_st, char path[] ){
     initialize_header_struct( header );
 
     /* Put the path name into the header struct */
-    write_pathname( header, path );
+    if( (write_pathname( header, path )) == -1 ){
+        err = -1;
+    }
+    
     /* Collect remaining info, formatted, into the struct */
-    get_info( file_st, header, path );
+    if( get_info( file_st, header, path ) ){
+        err = -1;
+    }
 
     /* Write all info to output buffer, output buffer is global */ 
     write_to_output_buffer( header );
@@ -303,30 +321,34 @@ int create_header( struct stat file_st, char path[] ){
 * Description: this function is intended to read the size of the file, determine
 *   how many blocks of data need to be written, and returns the value
 *
-* param: 
-* return: the number of blocks 
+* param: size - size of the file
+* return: num_blocks - the number of blocks needed for the file contents
 *-----------------------------------------------------------------------------*/
 int get_content_size( int size ){
     int num_blocks;
+
     /* Find num blocks based on file size from stat first */
     num_blocks = size / BLOCK_SIZE;
     if( (size % BLOCK_SIZE) > 0 ){
-        num_blocks++; /* Add one if there are remaining bytes */
+        num_blocks++; /* Add one if there are leftover bytes that do not fill
+            a full block */
     }
     return num_blocks;
 }
 /*------------------------------------------------------------------------------
 * Function: read_write_buffer_header
 *
-* Description: 
+* Description: tedious function to copy all of the fields in the header struct
+*   to the output buffer before writing it to the tarfile 
 *
-* param:  
+* param: header - header struct containing all of the data to be written
 *-----------------------------------------------------------------------------*/
 void write_to_output_buffer( header_t *header ){
+
     /* First clear out the wrbuf */
     char *where = memset( writebuf, '\0', 512 );
-    /* Now copy the contents of the header struct to the wrbuf */
-        /* Very tedious.... */
+
+    /* Copy the contents... */
     where = memcpy( where, header -> name, NAME_W );
     where = where + NAME_W;
     where = memcpy( where, header -> mode, MODE_W );
@@ -366,9 +388,17 @@ void write_to_output_buffer( header_t *header ){
 /*------------------------------------------------------------------------------
 * Function: insert_special_int 
 *
-* Description: 
+* Description: "For interoperability with GNU tar. GNU seeems to set the high
+*   order bit of the first byte, then treat the rest of the field as a binary
+*   integer in network byte order. Insert the given integer into the given
+*   field using this technique." 
 *
-* param:  
+* param: where - where to write the value
+* param: size - the size of the location to write to
+* param: val - the value to write
+* return: 0 on success, nonzero otherwise
+*
+* This function was provide by Dr. Nico - Cal Poly SLO
 *-----------------------------------------------------------------------------*/
 int insert_special_int( char *where, size_t size, int32_t val ){
     int err = 0;

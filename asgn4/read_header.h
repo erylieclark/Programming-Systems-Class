@@ -1,7 +1,9 @@
 /*******************************************************************************
 * File: read_header.h
 *
-* Description: 
+* Description: this file contains the functions that help separate all of the
+*   fields within the header block and convert them into a more computer
+*   usable format
 *
 * Author: Erin Rylie Clark
 *******************************************************************************/
@@ -43,7 +45,6 @@ struct verbose{
 	char gname[GNAME_W];
 };
 
-
 int check_null_header( void );
 void separate_header_fields( header_t *header );
 void verify_header( header_t *header );
@@ -53,9 +54,6 @@ char get_type( char flag );
 int unpack_header_struct( header_t *header, verbose_t *verbose );
 int read_header( verbose_t *verbose );
 uint32_t extract_special_int( char *where, int len );
-
-
-
 
 #endif /* _READ_HEADER_H */
 
