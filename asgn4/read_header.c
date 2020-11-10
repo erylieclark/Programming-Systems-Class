@@ -351,7 +351,7 @@ uint32_t extract_special_int( char *where, int len ){
     int32_t val = -1;
 
     if( (len >= sizeof(val)) && (where[0] & 0x80 )){
-        /* The top bit is set and we have space to extract the last four bytes */
+        /* The top bit is set and we have space to extract the last 4  bytes */
         val = *(int32_t *)(where + len - sizeof(val));
         val = ntohl(val);
     }

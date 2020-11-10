@@ -146,7 +146,7 @@ void convert_to_header_format( uint32_t val, int width, char buf[] ){
 * param: header - the header struct to place the collected info into
 * param: path - the path of the file we are currently looking at
 * return: 0 on success, nonzero on failure
-*-----------------------------------------------------------------------------*/ 
+*----------------------------------------------------------------------------*/ 
 int set_typeflag_and_linkname( struct stat file_st,\
         header_t *header, char path[] ){ 
     int err = 0; 
