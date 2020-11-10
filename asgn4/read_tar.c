@@ -97,7 +97,7 @@ int check_requested_paths( char *cur, char **req ){
     int check = 0;
     /* First check if there are any paths */
     if( *req == NULL ){
-        check++; /* The current path is a valid one , because the user did
+        check = 2; /* The current path is a valid one , because the user did
             not request any specific ones */
         return check; 
     }

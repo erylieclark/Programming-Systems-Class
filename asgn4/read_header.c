@@ -154,11 +154,11 @@ void stitch_name_together( header_t *header, verbose_t *verbose ){
     else{ /* If not empty, copy into the verbose buffer */
         length = strnlen( header -> prefix, PREFIX_W);
         strncpy( verbose -> name, header -> prefix, length );
+        loc = length;
         /* Write a '/' into the next spot in the buffer */
         (verbose -> name)[loc] = '/';
         loc++;
     }
-    loc = length;
     /* Write the name into the buffer */
     if( (header -> name)[0] == '\0' ){ /* Nothing in the name */
         fprintf(stderr, "Invalid header file - nothing in name field.\n");
@@ -330,7 +330,7 @@ int read_header( verbose_t *verbose ){
     /* Get info into computer friendly format */
     unpack_header_struct( header, verbose );
     /* Get the number of blocks to read for this file */
-    num_blocks = get_content_size( verbose -> size );
+    num_blocks = get_content_size( verbose -> size , 0 );
     /* Pass back the header */
     return num_blocks;
 }

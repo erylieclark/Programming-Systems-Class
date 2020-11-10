@@ -58,7 +58,7 @@ void initialize_header_struct( header_t *header ){
 * param: path - the path to copy into the header struct
 * return: -1 on failure, 0 on success
 *-----------------------------------------------------------------------------*/
-int write_pathname( header_t *header, char path[] ){
+int write_pathname( header_t *header, char path[], struct stat file_st ){
     int len;
     int split;
     /* Double check that the path is not more than 255 chars */
@@ -68,14 +68,14 @@ int write_pathname( header_t *header, char path[] ){
     
     /* If the name is less than or equal to 100 chars, it will fit into name */
     if( len <= NAME_W ){
-        strncpy( header -> name, path, NAME_W );
-        if( *(header -> typeflag) == '5' ){ /* Its a directory, add a / */
+        if( (file_st.st_mode & S_IFMT) == S_IFDIR ){ 
             if( path[len-1] != '/' ){ /* If there isnt one already */
                 if( len < NAME_W ){ /* But only if there is room for it */
                     path[len] = '/';
                 }
             }
         }
+        strncpy( header -> name, path, NAME_W );
         return 0;
     }
     
@@ -243,6 +243,22 @@ int chksum_count( char buf[] , int width ){
     return count;
 }
 /*------------------------------------------------------------------------------
+* Function: write_size 
+*
+* Description: This function sets the size to zero if it is a directory. 
+*
+* param: buf - the buffer to count the chars in
+* param: width - the width of the buffer, to be able to count all of the chars
+*-----------------------------------------------------------------------------*/
+void write_size( struct stat file_st, header_t *header ){
+    if( (file_st.st_mode & S_IFMT) == S_IFDIR ){
+        convert_to_header_format( 0 , SIZE_W, header -> size );
+    }
+    else{
+        convert_to_header_format( file_st.st_size, SIZE_W, header -> size );
+    }
+}
+/*------------------------------------------------------------------------------
 * Function: get_info 
 *
 * Description: 
@@ -265,7 +281,7 @@ int get_info( struct stat file_st, header_t *header, char path[] ){
     convert_to_header_format( file_st.st_gid, GID_W, header -> gid ); 
     chksum += chksum_count( header -> gid, GID_W );
     /* Size */
-    convert_to_header_format( file_st.st_size, SIZE_W, header -> size );
+    write_size( file_st, header );
     chksum += chksum_count( header -> size, SIZE_W );
     /* mtime */    
     convert_to_header_format( file_st.st_mtime, MTIME_W, header -> mtime ); 
@@ -333,21 +349,21 @@ int create_header( struct stat file_st, char path[] ){
     /* Set all fields to empty */
     initialize_header_struct( header );
 
+    /* Put the path name into the header struct */
+    if( (write_pathname( header, path, file_st )) == -1 ){
+        return -1;
+    }
     /* Collect remaining info, formatted, into the struct */
     if( get_info( file_st, header, path ) ){
         return -1;
     }
 
-    /* Put the path name into the header struct */
-    if( (write_pathname( header, path )) == -1 ){
-        return -1;
-    }
     
     /* Write all info to output buffer, output buffer is global */ 
     write_to_output_buffer( header );
 
     /* Get the number of blocks to be written before freeing the struct */
-    num_blocks = get_content_size( file_st.st_size );
+    num_blocks = get_content_size( file_st.st_size, file_st.st_mode );
     
     free( header ); /* No value is returned on free */
 
@@ -363,9 +379,13 @@ int create_header( struct stat file_st, char path[] ){
 * param: size - size of the file
 * return: num_blocks - the number of blocks needed for the file contents
 *-----------------------------------------------------------------------------*/
-int get_content_size( int size ){
+int get_content_size( int size, int mode ){
     int num_blocks;
 
+    if( (mode & S_IFMT) == S_IFDIR ){
+        size = 0;
+    }
+    
     /* Find num blocks based on file size from stat first */
     num_blocks = size / BLOCK_SIZE;
     if( (size % BLOCK_SIZE) > 0 ){
