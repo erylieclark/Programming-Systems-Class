@@ -70,8 +70,10 @@ int write_pathname( header_t *header, char path[] ){
     if( len <= NAME_W ){
         strncpy( header -> name, path, NAME_W );
         if( *(header -> typeflag) == '5' ){ /* Its a directory, add a / */
-            if( len < NAME_W ){ /* But only if there is room for it */
-                path[len] = '/';
+            if( path[len-1] != '/' ){ /* If there isnt one already */
+                if( len < NAME_W ){ /* But only if there is room for it */
+                    path[len] = '/';
+                }
             }
         }
         return 0;

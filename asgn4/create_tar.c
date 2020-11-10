@@ -80,12 +80,17 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
     DIR *d_pntr;
     int num_blocks; 
     FILE *rdfd;
-    
+    int slash = 0;
+ 
     /* Stat the entry */
     if( lstat( path, &file_st ) == -1 ){
         perror(path);
         return; /* If we don't have permission for this one, check
                     the next one */
+    }
+    /* Determine if it has a slash on the end of it */
+    if( path[strlen(path)-1] == '/' ){
+        slash = 1;
     }
 
     /* Collect info on the entry and write it to the output buffer */
@@ -96,6 +101,10 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
 
     /* Check if it is a directory */
     if( (file_st.st_mode & S_IFMT) == S_IFDIR ){
+        if( !slash ){
+            loc++;
+        }
+
         /* If it is a dir, write the header to the output and then start 
             reading the files in it */
         /* Write the header to the tar file */
@@ -125,7 +134,8 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
             }
             /* Call the function again to assess the files in the directory */
             recurse_files_and_create( fd, path, \
-                (loc + strlen(dir_st -> d_name) + 1));
+                (loc + strlen(dir_st -> d_name) ));
+            memset( &path[loc] , '\0', (MAX_PATH_LENGTH - loc) );
         }
         closedir( d_pntr );
     }
@@ -163,6 +173,7 @@ void create_tar( FILE *fd, char **paths ){
     int loc = 0; /* Location to write to into the buffer */
     while( paths[cur] != NULL ){
         loc = 0; /* Write each given path to the beginning of the buffer */
+        memset( path_buf, '\0', MAX_PATH_LENGTH );
         strcpy( &path_buf[loc], paths[cur] ); /* Add the path to the buffer */
         loc = strlen( paths[cur] ); /* Set location to write after the path */
         recurse_files_and_create( fd, path_buf, loc );
