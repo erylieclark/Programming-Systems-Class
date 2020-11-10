@@ -87,7 +87,9 @@ void print_time( time_t *mtime ){
 *   the user
 *
 * param: cur - the current path we are looking at
-* param: req - the array of requested paths from the user
+* param: req - the array of requested paths from the user 
+* return: check - return 1 if the path is in it, 2 if the path is longer, 0
+*   if the path does not match a requested one.
 *-----------------------------------------------------------------------------*/
 int check_requested_paths( char *cur, char **req ){
     int len_req, i = 0;
@@ -111,6 +113,13 @@ int check_requested_paths( char *cur, char **req ){
             i++;
         }
         else{ /* The paths do match, so continue working with this file */
+            if( len_cur >= len_req ){
+                /* This is a part of the requested path */
+                check++;
+            }
+            else{
+                ; /* This is a parent of the path, do nothing */
+            }
             check++;
             break;
         }
@@ -132,8 +141,9 @@ int check_requested_paths( char *cur, char **req ){
 *-----------------------------------------------------------------------------*/
 void list_tar( verbose_t *verbose, FILE *fd, int num_blocks, char **paths ){
     /* Compare the current path with the requested paths */
-    if( !check_requested_paths( verbose -> name, paths ) ){ /* no match */
-        /* Skip to the next header based on num_blocks */
+    if( check_requested_paths(verbose -> name, paths) < 2 ){
+        /* No match, or the path is only a parent of a requested path,
+            Skip to the next header based on num_blocks */
         if( (fseek( fd, BLOCK_SIZE*num_blocks , SEEK_CUR )) ){
             perror("fseek");
             exit( EXIT_FAILURE );
@@ -269,17 +279,19 @@ FILE *create_item_type( verbose_t *verbose ){
 void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks,\
         char **paths ){
     FILE *wrfd;
+    int check;
 
-    /* Compare the current path with the requeste paths */
-    if( !check_requested_paths( verbose -> name, paths ) ){ /* no match */
-        /* Skip to the next header based on num_blocks */
+    /* Compare the current path with the requested paths */
+    if( (check = check_requested_paths(verbose -> name, paths)) == 0 ){
+        /* No match, Skip to the next header based on num_blocks */
         if( (fseek( rdfd, BLOCK_SIZE*num_blocks , SEEK_CUR )) ){
             perror("fseek");
             exit( EXIT_FAILURE );
         }
         return; /* Go back without extracting this file or directory */
     }
-    /* otherwise, this is a match, proceed with extracting this file */
+    /* otherwise, this is either a parent of a requested path, or it is part
+        of a requested path, proceed with extracting this file */
     wrfd = create_item_type( verbose );
      
     /* Check if the item is a directory, file, or symlink */
@@ -293,7 +305,8 @@ void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks,\
     }
     else{ /* If a file, write all of the contents from the tarfile */
         restore_file_contents( wrfd, rdfd, num_blocks, verbose -> size );
-        if( verb_list ){
+        if( verb_list && check == 2 ){ /* Only print if this is a part of the
+                requested path, and not just a parent */
             printf("%s\n", verbose -> name );
         }
         fclose( wrfd ); /* Close the file when done */
@@ -315,9 +328,6 @@ void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks,\
 
 void read_tar( FILE *fd, char **paths, void(*option)(verbose_t *verbose,\
         FILE *fd, int num_blocks, char **paths) ){
-    int cur = 0;
-    char path_buf[MAX_PATH_LENGTH];
-    int loc = 0; /* Location to write to into the buffer */
     int null_blocks = 0;
     int num_blocks = 0;
     verbose_t *verbose;

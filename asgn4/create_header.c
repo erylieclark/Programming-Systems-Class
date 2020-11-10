@@ -11,6 +11,8 @@
 
 #include "create_header.h"
 #include "read_write.h"
+#include "read_header.h"
+#include "user_input.h"
 
 /* if wanting to get devmajor and devminor values. For this program, leave alone
 #define DEVS
@@ -57,7 +59,43 @@ void initialize_header_struct( header_t *header ){
 * return: -1 on failure, 0 on success
 *-----------------------------------------------------------------------------*/
 int write_pathname( header_t *header, char path[] ){
-    strncpy( header -> name, path, NAME_W );
+    int len;
+    int split;
+    /* Double check that the path is not more than 255 chars */
+    if( (len = strlen( path )) > MAX_PATH_LENGTH ){
+        return -1; /* The path is too long to fit into the buffers */
+    }
+    
+    /* If the name is less than or equal to 100 chars, it will fit into name */
+    if( len <= NAME_W ){
+        strncpy( header -> name, path, NAME_W );
+        if( *(header -> typeflag) == '5' ){ /* Its a directory, add a / */
+            if( len < NAME_W ){ /* But only if there is room for it */
+                path[len] = '/';
+            }
+        }
+        return 0;
+    }
+    
+    /* Otherwise, find the splitting point and split it into name and prefix */
+    split = len - NAME_W; /* 100 chars from the end of the string */
+    /* Cycle through the characters until we find a slash or we reach the end */
+    while( path[split] != '/' && split != MAX_PATH_LENGTH ){
+        split++;
+    }
+    /* If we reached the end, there was no / in the last 100 chars, so we can
+        not fit this into the buffer, send a -1 back to skip the file */
+    if( split == MAX_PATH_LENGTH ){
+        return -1;
+    }
+    else{
+        /* Place the second part into name */
+        strncpy( header -> name, &path[split], (len - split) );
+        /* Place the first part into prefix */
+        strncpy( header -> prefix, path, (split-1) );
+    }
+    
+    return 0;
 }
 
 /*------------------------------------------------------------------------------
@@ -84,7 +122,7 @@ void convert_to_header_format( uint32_t val, int width, char buf[] ){
         memset( buf, '\0', width ); /* Blank out the buffer again */
         if( !strict ){
             if( insert_special_int( buf, width, val )){
-                printf("Val cannot be written to the header field.\n");
+                fprintf(stderr, "Val cannot be written to the header field.\n");
                 exit( EXIT_FAILURE );
             }
         }
@@ -282,7 +320,6 @@ int get_info( struct stat file_st, header_t *header, char path[] ){
 int create_header( struct stat file_st, char path[] ){
     header_t *header;
     int num_blocks;
-    int err = 0;
 
     /* Create a new header struct to store the info */
     header = (header_t *) malloc(sizeof(header_t));
@@ -294,16 +331,16 @@ int create_header( struct stat file_st, char path[] ){
     /* Set all fields to empty */
     initialize_header_struct( header );
 
-    /* Put the path name into the header struct */
-    if( (write_pathname( header, path )) == -1 ){
-        err = -1;
-    }
-    
     /* Collect remaining info, formatted, into the struct */
     if( get_info( file_st, header, path ) ){
-        err = -1;
+        return -1;
     }
 
+    /* Put the path name into the header struct */
+    if( (write_pathname( header, path )) == -1 ){
+        return -1;
+    }
+    
     /* Write all info to output buffer, output buffer is global */ 
     write_to_output_buffer( header );
 

@@ -100,7 +100,7 @@ void separate_header_fields( header_t *header ){
     }
     /* Convert chksum to an int and compare to counted chksum */
     if( chksum != (convert_octstr_to_int(header -> chksum, CHKSUM_W)) ){
-        printf("Invalid tar file - chksum does not match.\n");
+        fprintf(stderr, "Invalid tar file - chksum does not match.\n");
         exit( EXIT_FAILURE );
     }
 }
@@ -116,19 +116,20 @@ void verify_header( header_t *header ){
     /* First check magic number for ustar */
     if( strncmp( "ustar" , header -> magic, (MAGIC_W-1)) ){
         /* Check that the ustar matches, if it doesn't, report and exit */
-        printf("Invalid tar file - magic number not ustar.\n");
+        fprintf(stderr, "Invalid tar file - magic number not ustar.\n");
         exit( EXIT_FAILURE );
     }
      /* Only complete further checking if Strict (global variable) is enabled */
     if( strict ){
         /* Check that ustar is null terminated */
         if( ((header -> magic)[MAGIC_W-1]) != '\0' ){
-            printf("Invalid tar file - magic number not null terminated.\n");
+            fprintf(stderr, "Invalid tar file -\
+                magic number not null terminated.\n");
             exit( EXIT_FAILURE );
         }
         /* Now check the version */
         else if( strncmp( "00", header -> version, VERSION_W ) ){
-            printf("Invalid tar file - incorrect version.\n");
+            fprintf(stderr, "Invalid tar file - incorrect version.\n");
             exit( EXIT_FAILURE );
         }
     }
@@ -160,7 +161,7 @@ void stitch_name_together( header_t *header, verbose_t *verbose ){
     loc = length;
     /* Write the name into the buffer */
     if( (header -> name)[0] == '\0' ){ /* Nothing in the name */
-        printf("Invalid header file - nothing in name field.\n");
+        fprintf(stderr, "Invalid header file - nothing in name field.\n");
         exit( EXIT_FAILURE );
     }
     else{ /* If not empty, copy into verbose buffer */
@@ -259,7 +260,8 @@ int unpack_header_struct( header_t *header, verbose_t *verbose ){
 
     /* Get the type of file */
     if( (verbose -> type = get_type( *(header -> typeflag) )) == -1 ){
-        printf("%s: File type not supported by mytar.\n", verbose -> name );
+        fprintf(stderr, "%s: File type not supported by mytar.\n",\
+            verbose -> name );
         exit( EXIT_FAILURE );
     }
 

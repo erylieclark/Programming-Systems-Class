@@ -56,8 +56,6 @@ int add_to_path( char path[], int loc, const char *d_name){
         return -1; /* Failed */
     }
     else{
-        path[loc] = '/'; /* First add a slash to the path before adding */
-        loc++; /* Write in the next location */
         strcpy( &path[loc], d_name ); /* Now write the name */
     }
     return 0; /* Successful */
@@ -137,7 +135,7 @@ void recurse_files_and_create( FILE *fd, char *path, int loc ){
             perror("fopen");
             return; /* Return before writing anything to output */
         }
-        else{ /* If opened successfully, write the header to ouput, then write
+        else{ /* If opened successfully, write the header to output, then write
                     the contents of the file */
             /* Write the header to the tar file */
             write_buffer_out( fd );

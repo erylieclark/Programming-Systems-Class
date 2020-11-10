@@ -31,8 +31,8 @@ void validate_options( char options ){
 
     /* Check first that f is there */
     if( !(options & FARCH) ){
-        printf("Must use the 'f' option.\n");
-        printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
+        fprintf(stderr, "Must use the 'f' option.\n");
+        fprintf(stderr, "usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
         exit( EXIT_FAILURE );
     }
     
@@ -42,8 +42,8 @@ void validate_options( char options ){
     }
     if( options & LIST ){ /* Check for 't' */
         if( CTX == 1){ /* Error if c was already set */
-            printf("You may only choose one of the 'ctx' options.\n");
-            printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
+            fprintf(stderr, "You may only choose one of the 'ctx' options.\n");
+            fprintf(stderr, "usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
             exit( EXIT_FAILURE );
         }
         else{
@@ -52,8 +52,8 @@ void validate_options( char options ){
     }
     if( options & EXTRACT ){ /* Check for 'x' */
         if( CTX == 1){ /* Error if c or t was already set */
-            printf("You may only choose one of the 'ctx' options.\n");
-            printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
+            fprintf(stderr, "You may only choose one of the 'ctx' options.\n");
+            fprintf(stderr, "usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
             exit( EXIT_FAILURE );
         }
         else{
@@ -62,8 +62,8 @@ void validate_options( char options ){
     }
 
     if( CTX == 0 ){ /* If the flag was not set, invalid input */
-        printf("You must choose one of the 'ctx' options.\n");
-        printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
+        fprintf(stderr, "You must choose one of the 'ctx' options.\n");
+        fprintf(stderr, "usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
         exit( EXIT_FAILURE );
     }
 
@@ -93,8 +93,8 @@ int read_optional_input(int argc, char **argv){
 
     /* First check that there are enough arguments */
     if( argc < MIN_INPUTS ){
-        printf("Not enough arguments.\n");
-        printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
+        fprintf(stderr, "Not enough arguments.\n");
+        fprintf(stderr, "usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
         exit( EXIT_FAILURE );
     }
     
@@ -120,8 +120,8 @@ int read_optional_input(int argc, char **argv){
                 options = options | STRICT;
                 break;
             default:
-                printf("%c is not an option.\n", argv[OPT_ARG][i]);
-                printf("usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
+                fprintf(stderr, "%c is not an option.\n", argv[OPT_ARG][i]);
+                fprintf(stderr, "usage: [ctxvS]f tarfile [ path [ ... ] ]\n");
                 exit( EXIT_FAILURE );
         }
     }
@@ -159,13 +159,13 @@ FILE *open_file( char *argv, int mode ){
     switch(mode){
         case LIST: 
             check_size = 1; /* Check the size if reading a tarfile */
-            fd = fopen( argv, "r+");
+            fd = fopen( argv, "r");
                 /* Open as read/write, the + causes fopen to fail if its a
                     directory */
             break;
         case EXTRACT: 
             check_size = 1; /* Check the size if reading a tarfile */
-            fd = fopen( argv, "r+");
+            fd = fopen( argv, "r");
                 /* Open as read/write, the + causes fopen to fail if its a
                     directory */
             break;
@@ -186,12 +186,18 @@ FILE *open_file( char *argv, int mode ){
             perror("lstat");
             exit( EXIT_FAILURE );
         }
+        /* Check that this isn't a directory */
+        if( (statbuf.st_mode & S_IFMT) == S_IFDIR ){
+            fprintf(stderr, "Tarfile cannot be a directory.\n");
+            exit( EXIT_FAILURE );
+        }
         if( (statbuf.st_size) < 2*BLOCK_SIZE ){ /* Too small to be tar */
-            printf("Not a valid tar file - not enough bytes.\n");
+            fprintf(stderr, "Not a valid tar file - not enough bytes.\n");
             exit( EXIT_FAILURE );
         }
         else if( (statbuf.st_size % BLOCK_SIZE) ){ /* Check its size */
-            printf("Not a valid tar file - size not a multiple of 512.\n");
+            fprintf(stderr, "Not a valid tar file -\
+                size not a multiple of 512.\n");
             exit( EXIT_FAILURE );
         }
     }

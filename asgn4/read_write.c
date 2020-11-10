@@ -29,12 +29,13 @@ void read_into_buffer( FILE *fd ){
 
     if( num_bytes == 0 ){ /* Check for error or end of file */
         if( ferror(fd) ){ /* Error */
-            printf("Error reading tar file.\n");
+            fprintf(stderr, "Error reading tar file.\n");
             exit( EXIT_FAILURE );
         }
     } /* Don't care about end of file, other functions will handle it */
     else if( num_bytes != BLOCK_SIZE ){ /* Must read in blocks of 512 */
-        printf("Invalid tar file - not written in block of 512 bytes.\n");
+        fprintf(stderr, "Invalid tar file -\
+            not written in block of 512 bytes.\n");
         exit( EXIT_FAILURE );
     }
 }
@@ -57,16 +58,16 @@ int write_buffer_out( FILE *fd ){
     /* Check for errors */
     if( num_bytes == 0 ){ /* Check for error or end of file */
         if( ferror(fd) ){ /* Error */
-            printf("Error reading tar file.\n");
+            fprintf(stderr, "Error reading tar file.\n");
             exit( EXIT_FAILURE );
         }
-        if( feof(rdfd) ){ /* End of file */
-            printf("Premature end of file indicator.\n");
+        if( feof(fd) ){ /* End of file */
+            fprintf(stderr, "Premature end of file indicator.\n");
             exit( EXIT_FAILURE );
         }
     } /* Don't care about end of file, other functions will handle it */
     else if( num_bytes != BLOCK_SIZE ){
-        printf("Bytes written not 512.\n");
+        fprintf(stderr, "Bytes written not 512.\n");
         exit( EXIT_FAILURE );
     }
     
@@ -96,11 +97,11 @@ void write_file_contents( FILE *wrfd, FILE *rdfd, int blocks ){
         num_bytes = fread( writebuf, sizeof(char), BLOCK_SIZE, rdfd );
         if( num_bytes == 0 ){ /* Check for error */
             if( ferror(rdfd) ){ /* Error */
-                printf("Error reading contents of file.\n");
+                fprintf(stderr, "Error reading contents of file.\n");
                 exit( EXIT_FAILURE );
             }
             if( feof(rdfd) ){ /* End of file */
-                printf("Premature end of file indicator.\n");
+                fprintf(stderr, "Premature end of file indicator.\n");
                 exit( EXIT_FAILURE );
             }
         }
@@ -140,11 +141,11 @@ void restore_file_contents( FILE *wrfd, FILE *rdfd, int blocks, int size ){
         num_bytes = fread( writebuf, sizeof(char), BLOCK_SIZE, rdfd );
         if( num_bytes == 0 ){ /* Check for error */
             if( ferror(rdfd) ){ /* Error */
-                printf("Error reading contents of file.\n");
+                fprintf(stderr, "Error reading contents of file.\n");
                 exit( EXIT_FAILURE );
             }
             if( feof(rdfd) ){ /* End of file */
-                printf("Premature end of file indicator.\n");
+                fprintf(stderr, "Premature end of file indicator.\n");
                 exit( EXIT_FAILURE );
             }
         }
@@ -161,11 +162,11 @@ void restore_file_contents( FILE *wrfd, FILE *rdfd, int blocks, int size ){
         num_bytes = fread( writebuf, sizeof(char), leftover, rdfd );
         if( num_bytes == 0 ){ /* Check for error */
             if( ferror(rdfd) ){ /* Error */
-                printf("Error reading contents of file.\n");
+                fprintf(stderr, "Error reading contents of file.\n");
                 exit( EXIT_FAILURE );
             }
             if( feof(rdfd) ){ /* End of file */
-                printf("Premature end of file indicator.\n");
+                fprintf(stderr, "Premature end of file indicator.\n");
                 exit( EXIT_FAILURE );
             }
         }
