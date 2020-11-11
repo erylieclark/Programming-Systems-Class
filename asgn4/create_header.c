@@ -70,8 +70,11 @@ int write_pathname( header_t *header, char path[], struct stat file_st ){
     if( len <= NAME_W ){
         if( (file_st.st_mode & S_IFMT) == S_IFDIR ){ /* If its a directory */ 
             if( path[len-1] != '/' ){ /* If there isnt one already */
-                if( len < NAME_W ){ /* But only if there is room for it */
+                if( len < NAME_W ){ /* Only if there is room for it */
                     path[len] = '/';
+                }
+                else{ /* Put it in prefix */
+                    (header -> prefix)[0] = '/';
                 }
             }
         }
@@ -91,15 +94,16 @@ int write_pathname( header_t *header, char path[], struct stat file_st ){
         return -1;
     }
     else{
-        /* Place the second part into name */
-        strncpy( header -> name, &path[split], (len - split) );
-        /* Place the first part into prefix */
-        strncpy( header -> prefix, path, (split-1) );
-    }
-    if( (file_st.st_mode & S_IFMT) == S_IFDIR ){ /* If its a directory */ 
-        if( path[len-1] != '/' ){ /* If there isnt one already */
-            path[len] = '/';
+        if( (file_st.st_mode & S_IFMT) == S_IFDIR ){ /* If its a directory */ 
+            if( path[len-1] != '/' ){ /* If there isnt one already */
+                path[len] = '/';
+                len++;
+            }
         }
+        /* Place the second part into name */
+        strncpy( header -> name, &path[split+1], (len - (split+1)) );
+        /* Place the first part into prefix */
+        strncpy( header -> prefix, path, split );
     }
     
     return 0;

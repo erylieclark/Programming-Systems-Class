@@ -11,14 +11,11 @@
 
 /*------------------------------------OTHER-----------------------------------*/
 This program was very challenging for me. Although I (think) implemented all of
-the error checking, there were still some cases where I was having issues that
-I could not figure out. It is not nearly as robust as I had hoped to get it as
-I was having trouble with some of the basics. For one, my check_requested_
-paths function in read_tar.c was working just fine until the named paths got
-longer. When the current path was the same as the requested path, the strlens
-produced a value that was just one off, and although strcmp should have
-returned true anyway, it was not and I couldn't figure out why. I had skipped
-the creating a new symlink portion as I ran out of time, and although I did
-implement the creating the tar with a prefix, I did not get it to work. 
-Overall, I'm a bit disappointed I didn't get further with how much I worked on
-this and how much I had hoped to get done.
+the error checking, and it passes all of your given tests, it is not quite 
+robust as I had hoped to get it for how much time I had spent on it. I was 
+hoping to have time to implement some extra features, but although I knew this
+was going to be a large program, I hadn't expected it to be as large as it was
+and it took me longer than I had planned to write it, so I ran out of time
+for extra things. Hopefully this passes enough of your tests but I think there
+may be some edge cases that I did not account for.
+

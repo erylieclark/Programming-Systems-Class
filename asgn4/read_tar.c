@@ -240,7 +240,10 @@ FILE *create_item_type( verbose_t *verbose ){
             }
             break;
         case 'l':
-            printf("The file is a symbolic link... Not implemented yet.\n");
+            if( symlink( verbose -> linkname, verbose -> name ) ){ 
+                perror("symlink"); 
+                exit( EXIT_FAILURE ); 
+            }
             wrfd = NULL;
             break;
         case 'd': /* Create the directory */
@@ -290,6 +293,16 @@ void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks,\
         }
         return; /* Go back without extracting this file or directory */
     }
+    else if( check == 1 ){ /* If its in the path, check if its a dir */
+        if( !(verbose -> type == 'd') ){
+            if( (fseek( rdfd, BLOCK_SIZE*num_blocks , SEEK_CUR )) ){
+                perror("fseek");
+                exit( EXIT_FAILURE );
+            }
+        return;
+        }
+    }
+        
     /* otherwise, this is either a parent of a requested path, or it is part
         of a requested path, proceed with extracting this file */
     wrfd = create_item_type( verbose );
@@ -298,6 +311,9 @@ void extract_tar( verbose_t *verbose, FILE *rdfd, int num_blocks,\
     if( wrfd == NULL ){ /* Null if it is a directory or symlink */
         /* Just in case it is something else that has a size, seek to the next
             header */
+        if( verb_list ){
+            printf("%s\n", verbose -> name );
+        }
         if( (fseek( rdfd, BLOCK_SIZE*num_blocks , SEEK_CUR )) ){
             perror("fseek");
             exit( EXIT_FAILURE );
