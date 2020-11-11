@@ -68,7 +68,7 @@ int write_pathname( header_t *header, char path[], struct stat file_st ){
     
     /* If the name is less than or equal to 100 chars, it will fit into name */
     if( len <= NAME_W ){
-        if( (file_st.st_mode & S_IFMT) == S_IFDIR ){ 
+        if( (file_st.st_mode & S_IFMT) == S_IFDIR ){ /* If its a directory */ 
             if( path[len-1] != '/' ){ /* If there isnt one already */
                 if( len < NAME_W ){ /* But only if there is room for it */
                     path[len] = '/';
@@ -95,6 +95,11 @@ int write_pathname( header_t *header, char path[], struct stat file_st ){
         strncpy( header -> name, &path[split], (len - split) );
         /* Place the first part into prefix */
         strncpy( header -> prefix, path, (split-1) );
+    }
+    if( (file_st.st_mode & S_IFMT) == S_IFDIR ){ /* If its a directory */ 
+        if( path[len-1] != '/' ){ /* If there isnt one already */
+            path[len] = '/';
+        }
     }
     
     return 0;

@@ -92,7 +92,7 @@ void print_time( time_t *mtime ){
 *   if the path does not match a requested one.
 *-----------------------------------------------------------------------------*/
 int check_requested_paths( char *cur, char **req ){
-    int len_req, i = 0;
+    int len, len_req, i = 0;
     int len_cur = strlen( cur ); /* Get the length of the current path */
     int check = 0;
     /* First check if there are any paths */
@@ -107,8 +107,8 @@ int check_requested_paths( char *cur, char **req ){
         path or possibly an extension of it */
     while( req[i] != NULL ){
         len_req = strlen( req[i] );
-        len_cur = len_req > len_cur ? len_cur : len_req; /* get the shortest */
-        if( strncmp( cur, req[i], len_cur ) ){
+        len = len_req > len_cur ? len_cur : len_req; /* get the shortest */
+        if( strncmp( cur, req[i], len ) ){
             /* The strings do not match, check the next requested path */
             i++;
         }
