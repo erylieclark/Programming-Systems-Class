@@ -1,0 +1,16 @@
+/*******************************************************************************
+* Program 7: forkit and tryit
+*
+* Erin Rylie Clark (eclark04)
+*******************************************************************************/
+
+/*--------------------------------INSTRUCTIONS--------------------------------*/
+1. Compile the c source code by entering "make"
+
+2. to run forkit: just enter ./forkit
+
+3. to run tryit: enter ./tryit followed by a path to a program that you want
+to run 
+ 
+/*------------------------------------OTHER-----------------------------------*/
+
