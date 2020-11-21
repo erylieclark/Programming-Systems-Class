@@ -1,0 +1,21 @@
+/*******************************************************************************
+* Assignment 4: mytar 
+*
+* Erin Rylie Clark (eclark04)
+*******************************************************************************/
+
+/*--------------------------------INSTRUCTIONS--------------------------------*/
+1. Compile the c source code by entering "make"
+
+2. usage: [ctxvS]f tarfile [ path [ ... ] ]
+
+/*------------------------------------OTHER-----------------------------------*/
+This program was very challenging for me. Although I (think) implemented all of
+the error checking, and it passes all of your given tests, it is not quite 
+robust as I had hoped to get it for how much time I had spent on it. I was 
+hoping to have time to implement some extra features, but although I knew this
+was going to be a large program, I hadn't expected it to be as large as it was
+and it took me longer than I had planned to write it, so I ran out of time
+for extra things. Hopefully this passes enough of your tests but I think there
+may be some edge cases that I did not account for.
+
