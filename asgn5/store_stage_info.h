@@ -15,15 +15,39 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Global Variables */
+/* Local Header Files */
+#include "check_valid_input.h"
 
+/* Defined Values */
+#define NOT_SET 0
+#define FILENAME 1
+#define ORIG_STDIN 2
+#define ORIG_STDOUT 2
+#define PIPE_FROM_STAGE 3
+#define PIPE_TO_STAGE 3
 
+/* Structure */
+struct stage{
+    int stage_num;
+    struct stage *next_stage;
+    int input_type;
+    int output_type;
+    char *full_command;
+    char *command;
+    char *input;
+    char *output;
+    char *args_v[MAX_CMD_ARGS];
+    int num_args;
+    
+    /*
+    FILE *input_fd;
+    FILE *output_fd;
+    */
+};
+typedef struct stage stage_t;
 
-
-
-
-
-
+void print_in_out( stage_t *stage );
+void print_stages( stage_t *stage );
 
 #endif /* _STORE_STAGE_INFO_H */
 

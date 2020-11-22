@@ -7,29 +7,134 @@
 *
 *******************************************************************************/
 
-
 /* Local Header Files */
 #include "check_valid_input.h"
 
+
 /*------------------------------------------------------------------------------
-* Function: parse_by_spaces
+* Function: check_redirs 
 *-----------------------------------------------------------------------------*/
-int parse_by_spaces( char *stage ){
+void check_redirs( char *stage_tokens[] , int num_tokens, int pipe_status){
+    int r_in = 0;
+    int r_out = 0;
+    int redir_flag = 0; /* For checking if the last argument was a redir or cmd */
+    int mult_args = 0;
     int i = 0;
     char *token;
 
-    token = strtok( cmd, PIPE_DELIM );
+    for( i = 0 ; i < num_tokens ; i++ ){
+        token = stage_tokens[i];
+        if( strcmp( token, "<" ) == 0 ){
+            if( ! mult_args ){
+                r_in++;
+                redir_flag = 1;
+                /* Check that the first one is not a redirection symbol */
+                if( i == 0 ){ /* First arg is a redir */
+                    fprintf(stderr, "%s: bad input redirection\n", stage_tokens[0]);
+                    exit( EXIT_FAILURE );
+                }
+                else if( i == (num_tokens - 1) ){ /* Last arg is a redir */
+                    fprintf(stderr, "%s: bad input redirection\n", stage_tokens[0]);
+                    exit( EXIT_FAILURE );
+                }
+            }
+            else{
+                fprintf(stderr, "%s: bad input redirection\n", stage_tokens[0]);
+                exit( EXIT_FAILURE );
+            }
+        }
+        else if( strcmp( token, ">" ) == 0 ){
+            if( ! mult_args ){
+                r_out++;
+                redir_flag = 1;
+                /* Check that the first one is not a redirection symbol */
+                if( i == 0 ){ /* First arg is a redir */
+                    fprintf(stderr, "%s: bad output redirection\n", stage_tokens[0]);
+                    exit( EXIT_FAILURE );
+                }
+                else if( i == (num_tokens - 1) ){ /* Last arg is a redir */
+                    fprintf(stderr, "%s: bad output redirection\n", stage_tokens[0]);
+                    exit( EXIT_FAILURE );
+                }
+            }
+            else{
+                fprintf(stderr, "%s: bad output redirection\n", stage_tokens[0]);
+                exit( EXIT_FAILURE );
+            }
+        }
+        else{
+            if( !redir_flag && i != 0 ){
+                mult_args++;
+                if( (mult_args + 1) >= MAX_CMD_ARGS ){
+                    fprintf(stderr, "%s: too many arguments\n",
+                        stage_tokens[0]);
+                    exit( EXIT_FAILURE );
+                }
+            }
+            else{
+                redir_flag = 0;
+            }
+        }
+    }
+
+    /* Now check for too many redirections */
+    if( r_in > 1 ){
+        fprintf(stderr, "%s: bad input redirection\n", stage_tokens[0] );
+        exit( EXIT_FAILURE );
+    }
+    else if( r_out > 1 ){
+        fprintf(stderr, "%s: bad output redirection\n", stage_tokens[0] );
+        exit( EXIT_FAILURE );
+    }
+    
+    /* Now check that redirections are apropriate for where the stage is
+         in the pipeline */    
+    switch( pipe_status ){
+        case NO_PIPE:
+            /* Do nothing, both redirections can be present in this case */
+            break;
+        case PIPE_IN:
+            if( r_in ){
+                fprintf(stderr, "%s: ambiguous input\n", stage_tokens[0] );
+                exit( EXIT_FAILURE );
+            }
+            break;
+        case PIPE_OUT:
+            if( r_out ){
+                fprintf(stderr, "%s: ambiguous output\n", stage_tokens[0] );
+                exit( EXIT_FAILURE );
+            }
+            break;
+        case PIPE_IN_OUT:
+            if( r_in ){
+                fprintf(stderr, "%s: ambiguous input\n", stage_tokens[0] );
+                exit( EXIT_FAILURE );
+            }
+            if( r_out ){
+                fprintf(stderr, "%s: ambiguous output\n", stage_tokens[0] );
+                exit( EXIT_FAILURE );
+            }
+            break;
+    } 
+}
+/*------------------------------------------------------------------------------
+* Function: parse_by_spaces
+*-----------------------------------------------------------------------------*/
+int parse_by_spaces( char *stage, char *stage_tokens[] ){
+    int i = 0;
+    char *token;
+    
+    token = strtok( stage, SPACE_DELIM );
     do{
-        check_for_empty_stage( token );
-        store_stage( i, token, stages );
-        printf("%02d) <%s>\n", i++, token);
-        if( i > MAX_STAGES ){
-            fprintf(stderr, "pipeline too deep\n");
+        store_string( i, token, stage_tokens );
+        printf("   %02d) <%s>\n", i++, token);
+        if( i > MAX_STAGE_TOKENS ){
+            fprintf(stderr, "%s: too many arguments\n", stage_tokens[0]);
             exit( EXIT_FAILURE );
         }
-    }while( (token = strtok( NULL, PIPE_DELIM )) );
-
-    return i; /* Number of stages */
+    }while( (token = strtok( NULL, SPACE_DELIM )) );
+    /*store_string( i, NULL, stage_tokens );*/ /* Store a null in last spot */
+    return i; /* Number of tokens */
 }
 /*------------------------------------------------------------------------------
 * Function: parse_by_pipe
@@ -41,14 +146,14 @@ int parse_by_pipe( char cmd[], char *stages[] ){
     token = strtok( cmd, PIPE_DELIM );
     do{
         check_for_empty_stage( token );
-        store_stage( i, token, stages );
+        store_string( i, token, stages );
         printf("%02d) <%s>\n", i++, token);
         if( i > MAX_STAGES ){
             fprintf(stderr, "pipeline too deep\n");
             exit( EXIT_FAILURE );
         }
     }while( (token = strtok( NULL, PIPE_DELIM )) );
-
+    /*store_string( i, NULL, stages );*/ /* Store Null in last spot */
     return i; /* Number of stages */
 }
 /*------------------------------------------------------------------------------
@@ -98,15 +203,15 @@ void read_into_buffer( char cmd[] ){
 }
 
 /*------------------------------------------------------------------------------
-* Function: store_stage 
+* Function: store_string 
 *-----------------------------------------------------------------------------*/
-void store_stage( int loc, char *t, char *stages[] ){
-    stages[loc] = (char *) malloc(strlen(t) + 1);
-    if( stages[loc] == NULL ){
+void store_string( int loc, char *tok, char *str[] ){
+    str[loc] = (char *) malloc(strlen(tok) + 1);
+    if( str[loc] == NULL ){
         perror("malloc new stage");
         exit( EXIT_FAILURE );
     }
-    strcpy( stages[loc], t );
+    strcpy( str[loc], tok );
 }
 /*------------------------------------------------------------------------------
 * Function: check_for_empty_stage 

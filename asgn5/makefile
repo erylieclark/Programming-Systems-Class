@@ -16,8 +16,8 @@ TESTDIR = $(PWD)/inputs
 TESTINPUTS = $(TESTDIR)/*
 TESTEXPECT = $(TESTDIR)/outputs/*
 MAIN = parseline
-OBJ = parseline.o check_valid_input.o
-DEPS = check_valid_input.h
+OBJ = parseline.o check_valid_input.o store_stage_info.o
+DEPS = check_valid_input.h store_stage_info.h
 all: $(MAIN)
 
 $(MAIN): $(OBJ)  
@@ -37,7 +37,7 @@ memcheck_enc: parseline
 
 .PHONY: debug
 debug: parseline
-	gdb --args ./$< cvf tarfile Test
+	gdb --args ./$<  
 
 test: $(MAIN)
 	@echo "Testing $(MAIN):"
