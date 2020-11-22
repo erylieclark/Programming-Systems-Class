@@ -31,6 +31,7 @@
 
 void check_redirs( char *stage_tokens[], int num_tokens, int pipe_status );
 int parse_by_spaces( char *stage, char *stage_tokens[] );
+char *trim_trailing_space( char *str );
 int parse_by_pipe( char cmd[], char *stages[] );
 void check_first_char( char c );
 void read_into_buffer( char cmd[] );

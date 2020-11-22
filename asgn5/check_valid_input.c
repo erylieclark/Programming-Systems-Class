@@ -143,6 +143,18 @@ int parse_by_spaces( char *stage, char *stage_tokens[] ){
     return i; /* Number of tokens */
 }
 /*------------------------------------------------------------------------------
+* Function: trim_trailing_space 
+*-----------------------------------------------------------------------------*/
+char * trim_trailing_space( char *str ){
+    int last = strlen(str) - 1;
+    while( isspace(str[last]) ){
+        str[last] = '\0';
+        last--;
+    }
+    printf("After trim: %s\n", str );
+    return str;
+}
+/*------------------------------------------------------------------------------
 * Function: parse_by_pipe
 *-----------------------------------------------------------------------------*/
 int parse_by_pipe( char cmd[], char *stages[] ){
@@ -152,6 +164,7 @@ int parse_by_pipe( char cmd[], char *stages[] ){
     token = strtok( cmd, PIPE_DELIM );
     do{
         check_for_empty_stage( token );
+        token = trim_trailing_space(token);
         store_string( i, token, stages );
         i++;
         if( i > MAX_STAGES ){
