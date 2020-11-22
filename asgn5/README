@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Assignment 4: mytar 
+* Assignment 5: parseline 
 *
 * Erin Rylie Clark (eclark04)
 *******************************************************************************/
@@ -7,15 +7,27 @@
 /*--------------------------------INSTRUCTIONS--------------------------------*/
 1. Compile the c source code by entering "make"
 
-2. usage: [ctxvS]f tarfile [ path [ ... ] ]
+2. parseline reads from stdin. One way to do this is to pipe your command line
+    into parseline as follows:
+        echo '<command here>' | ./parseline
+
+/*---------------------------------LIMITATIONS--------------------------------*/
+Parseline sets some maximum values for the command line as follows:
+    command line length: 512 bytes
+    commands in a pipeline: 10
+    arguments to a command: 10
+
+These maximum values can be modified in the check_valid_input.h file and
+should not affect the behavior of the program.
 
 /*------------------------------------OTHER-----------------------------------*/
-This program was very challenging for me. Although I (think) implemented all of
-the error checking, and it passes all of your given tests, it is not quite 
-robust as I had hoped to get it for how much time I had spent on it. I was 
-hoping to have time to implement some extra features, but although I knew this
-was going to be a large program, I hadn't expected it to be as large as it was
-and it took me longer than I had planned to write it, so I ran out of time
-for extra things. Hopefully this passes enough of your tests but I think there
-may be some edge cases that I did not account for.
+This version of parseline exits on all errors. I believe in the mush assignment
+that this will not be acceptable as a shell cannot quit at every mistyped
+command. This will be changed in the mush program.
+ 
+In addition, I decided to use dynamic memory allocation for parseline as I 
+thought this was the easiest way to deal with various strings and separating
+them out. This program is not currently freeing everything it allocates because
+of the previous statement about exiting on errors. The mush program will need
+to free everything it allocates.
 

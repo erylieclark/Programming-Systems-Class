@@ -1,7 +1,9 @@
 /*******************************************************************************
 * File: check_valid_input.h
 *
-* Description: 
+* Description: these functions mainly deal with the separating out of the
+*   command line into information that can be more easily stored later on. They
+*   also do the majority of the usage error checking 
 *
 * Author: Erin Rylie Clark
 *******************************************************************************/
@@ -9,14 +11,11 @@
 #ifndef _CHECK_VALID_INPUT_H
 #define _CHECK_VALID_INPUT_H
 
-
 /* System Header Files */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
-/* Global Variables */
 
 #define MAX_CMD_LENGTH (512 + 2) /* One for \n and oen for \0 */
 #define MAX_STAGES 10

@@ -1,14 +1,15 @@
 /*******************************************************************************
 * File: store_stage_info.h
 *
-* Description: 
+* Description: This file contains the functions that create a new structure for
+*   for each stage in the pipeline, stores all of the info in the correct place,
+*   and prints it out.
 *
 * Author: Erin Rylie Clark
 *******************************************************************************/
 
 #ifndef _STORE_STAGE_INFO_H 
 #define _STORE_STAGE_INFO_H
-
 
 /* System Header Files */
 #include <stdio.h>
