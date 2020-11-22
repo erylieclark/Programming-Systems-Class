@@ -127,7 +127,7 @@ int parse_by_spaces( char *stage, char *stage_tokens[] ){
     token = strtok( stage, SPACE_DELIM );
     do{
         store_string( i, token, stage_tokens );
-        printf("   %02d) <%s>\n", i++, token);
+        i++;
         if( i > MAX_STAGE_TOKENS ){
             fprintf(stderr, "%s: too many arguments\n", stage_tokens[0]);
             exit( EXIT_FAILURE );
@@ -147,7 +147,7 @@ int parse_by_pipe( char cmd[], char *stages[] ){
     do{
         check_for_empty_stage( token );
         store_string( i, token, stages );
-        printf("%02d) <%s>\n", i++, token);
+        i++;
         if( i > MAX_STAGES ){
             fprintf(stderr, "pipeline too deep\n");
             exit( EXIT_FAILURE );
@@ -199,7 +199,6 @@ void read_into_buffer( char cmd[] ){
             /* Will need to not exit here in mush? */
         exit( EXIT_FAILURE );
     }
-    printf("You entered: %s\n", cmd); 
 }
 
 /*------------------------------------------------------------------------------
