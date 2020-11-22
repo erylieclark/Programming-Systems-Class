@@ -17,7 +17,7 @@
 void check_redirs( char *stage_tokens[] , int num_tokens, int pipe_status){
     int r_in = 0;
     int r_out = 0;
-    int redir_flag = 0; /* For checking if the last argument was a redir or cmd */
+    int redir_flag = 0; /* Check if the last argument was a redir or cmd */
     int mult_args = 0;
     int i = 0;
     char *token;
@@ -30,16 +30,19 @@ void check_redirs( char *stage_tokens[] , int num_tokens, int pipe_status){
                 redir_flag = 1;
                 /* Check that the first one is not a redirection symbol */
                 if( i == 0 ){ /* First arg is a redir */
-                    fprintf(stderr, "%s: bad input redirection\n", stage_tokens[0]);
+                    fprintf(stderr, "%s: bad input redirection\n", 
+                        stage_tokens[0]);
                     exit( EXIT_FAILURE );
                 }
                 else if( i == (num_tokens - 1) ){ /* Last arg is a redir */
-                    fprintf(stderr, "%s: bad input redirection\n", stage_tokens[0]);
+                    fprintf(stderr, "%s: bad input redirection\n", 
+                        stage_tokens[0]);
                     exit( EXIT_FAILURE );
                 }
             }
             else{
-                fprintf(stderr, "%s: bad input redirection\n", stage_tokens[0]);
+                fprintf(stderr, "%s: bad input redirection\n", 
+                    stage_tokens[0]);
                 exit( EXIT_FAILURE );
             }
         }
@@ -49,16 +52,19 @@ void check_redirs( char *stage_tokens[] , int num_tokens, int pipe_status){
                 redir_flag = 1;
                 /* Check that the first one is not a redirection symbol */
                 if( i == 0 ){ /* First arg is a redir */
-                    fprintf(stderr, "%s: bad output redirection\n", stage_tokens[0]);
+                    fprintf(stderr, "%s: bad output redirection\n", 
+                        stage_tokens[0]);
                     exit( EXIT_FAILURE );
                 }
                 else if( i == (num_tokens - 1) ){ /* Last arg is a redir */
-                    fprintf(stderr, "%s: bad output redirection\n", stage_tokens[0]);
+                    fprintf(stderr, "%s: bad output redirection\n",
+                        stage_tokens[0]);
                     exit( EXIT_FAILURE );
                 }
             }
             else{
-                fprintf(stderr, "%s: bad output redirection\n", stage_tokens[0]);
+                fprintf(stderr, "%s: bad output redirection\n",
+                    stage_tokens[0]);
                 exit( EXIT_FAILURE );
             }
         }
