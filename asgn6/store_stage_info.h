@@ -43,7 +43,7 @@ struct stage{
 typedef struct stage stage_t;
 
 char *malloc_struct_string( char *str );
-void store_stage_info( stage_t *stage_pntr, int stage_num, char *full_command,
+int store_stage_info( stage_t *stage_pntr, int stage_num, char *full_command,
     char *tokens[], int num_tokens, int pipe_status );
 stage_t *create_stage_struct( void );
 #ifdef PRINTSTAGES

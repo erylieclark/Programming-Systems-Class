@@ -26,7 +26,7 @@ char *malloc_struct_string( char *str ){
     loc = malloc(strlen(str) + 1);
     if( loc == NULL ){
         perror("malloc struct string");
-        exit( EXIT_FAILURE );
+        return NULL;
     }
     strcpy( loc, str );
     return loc;
@@ -48,7 +48,7 @@ char *malloc_struct_string( char *str ){
 * param: pipe_status - a variable that helps determine if this stage has an
 *   input pipe, output pipe, both, or none
 *-----------------------------------------------------------------------------*/
-void store_stage_info( stage_t *stage_pntr, int stage_num, char *full_command,
+int store_stage_info( stage_t *stage_pntr, int stage_num, char *full_command,
         char *tokens[], int num_tokens, int pipe_status ){
     int i = 0;
     int args_cnt = 0; /* argc */
@@ -57,11 +57,19 @@ void store_stage_info( stage_t *stage_pntr, int stage_num, char *full_command,
     
     /* Store the full command */
     stage_pntr -> full_command = malloc_struct_string( full_command ); 
-    
+    if( (stage_pntr -> full_command) == NULL ){
+         return -1; /* Check if malloc failed */
+    }
     /* First token should always be the executable, also store it in the
         argv list */
     stage_pntr -> command = malloc_struct_string( tokens[i] ); 
+    if( (stage_pntr -> command) == NULL ){
+         return -1; /* Check if malloc failed */
+    }
     (stage_pntr -> args_v)[args_cnt++] = malloc_struct_string( tokens[i++] );
+    if( ((stage_pntr -> args_v)[args_cnt - 1]) == NULL ){
+         return -1; /* Check if malloc failed */
+    }
     
     /* Now go through the remainder of the tokens and determine what are
         the inputs, outputs, and arguments */
@@ -69,6 +77,9 @@ void store_stage_info( stage_t *stage_pntr, int stage_num, char *full_command,
         /* if input redir symbol, take the next token is the input file */
         if( strcmp(tokens[i], "<") == 0 ){ 
             stage_pntr -> input = malloc_struct_string( tokens[++i] ); 
+            if( (stage_pntr -> input) == NULL ){
+                return -1; /* Check if malloc failed */
+            }
                 /* Save the filename in the input variable */
             stage_pntr -> input_type = FILENAME;
                 /* Set the type to file */
@@ -76,12 +87,18 @@ void store_stage_info( stage_t *stage_pntr, int stage_num, char *full_command,
         /* if output redir symbol, take the next token is the output file */
         else if( strcmp(tokens[i], ">") == 0 ){
             stage_pntr -> output = malloc_struct_string( tokens[++i] ); 
+            if( (stage_pntr -> output) == NULL ){
+                return -1; /* Check if malloc failed */
+            }
                 /* Save the filename in the output variable */
             stage_pntr -> output_type = FILENAME;
                 /* Set the type to file */
         }
         else{ /* Its an argument, so save in the args list, and add 1 to argc */
             stage_pntr -> args_v[args_cnt++] = malloc_struct_string( tokens[i]);
+            if( ((stage_pntr -> args_v)[args_cnt - 1]) == NULL ){
+                return -1; /* Check if malloc failed */
+            }
         }
         i++; /* Get the next token */
     }
@@ -120,6 +137,7 @@ void store_stage_info( stage_t *stage_pntr, int stage_num, char *full_command,
             fprintf(stderr, "Could not determine pipe status.\n");
             break;
     }
+    return 0;
 }
 
 /*------------------------------------------------------------------------------
@@ -136,7 +154,7 @@ stage_t *create_stage_struct( void ){
     new_stage_pntr = (stage_t *) malloc(sizeof(stage_t));
     if( !new_stage_pntr ){ /* Check return value */
         perror("malloc new stage struct");
-        exit( EXIT_FAILURE );
+        return NULL;
     }
     
     /* Now Initialize the values */

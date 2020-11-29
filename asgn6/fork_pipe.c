@@ -149,6 +149,9 @@ void cleanup( void ){
     stage_t *cur_pntr = head_pntr;
     stage_t *temp;
     int i;
+    if( cur_pntr == NULL ){
+        return; /* if no structs have been made */
+    }
     do{
         i = 0; 
         free( cur_pntr -> full_command );

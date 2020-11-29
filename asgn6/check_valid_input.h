@@ -28,14 +28,14 @@
 #define PIPE_OUT 2
 #define PIPE_IN_OUT 3
 
-void check_redirs( char *stage_tokens[], int num_tokens, int pipe_status );
+int check_redirs( char *stage_tokens[], int num_tokens, int pipe_status );
 int parse_by_spaces( char *stage, char *stage_tokens[] );
 char *trim_trailing_space( char *str );
 int parse_by_pipe( char cmd[], char *stages[] );
-void check_first_char( char c );
-void read_into_buffer( char cmd[] );
-void store_string( int loc, char *t, char *stages[] );
-void check_for_empty_stage( char *tok );
+int check_first_char( char c );
+int read_into_buffer( char cmd[] );
+int store_string( int loc, char *t, char *stages[] );
+int check_for_empty_stage( char *tok );
 
 #endif /* _CHECK_VALID_INPUT_H */
 

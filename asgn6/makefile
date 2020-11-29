@@ -33,7 +33,7 @@ clean:
 
 .PHONY: memcheck
 memcheck: mush
-	valgrind -s --leak-check=yes --track-origins=yes ./$< 
+	valgrind -s --leak-check=yes --leak-check=full --show-leak-kinds=all --track-origins=yes ./$< 
 
 .PHONY: debug
 debug: mush 

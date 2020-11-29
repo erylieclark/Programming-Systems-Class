@@ -27,7 +27,6 @@
 * Description:  
 *-----------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
-
     /* First check for arguments */
     if( argc > 1 ){ /* An argument was given with mush */
         printf("Argument given.\n");
@@ -36,12 +35,12 @@ int main(int argc, char *argv[]){
     while( 1 ){
         printf("8-P ");
         fflush(stdout);
-        parseline();
-            /* REMINDER: IF NO INPUT GIVEN, SKIP FORKING! */
-        fork_pipe();
+        if( parseline() ){ /* -1 on failure cleans up all malloc'd mem */
+            continue; /* Skip working with this command */
+        }
+        fork_pipe(); 
         cleanup();
+    
     }
-
-
     return 0;
 }
