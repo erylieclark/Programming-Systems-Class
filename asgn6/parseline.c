@@ -19,6 +19,7 @@
 #include "check_valid_input.h"
 #include "store_stage_info.h"
 
+stage_t *head_pntr; /* Global variable */
 /*------------------------------------------------------------------------------
 * Function: parseline 
 *
@@ -38,7 +39,6 @@ stage_t *parseline( void ){
     int num_tokens = 0;
     int i = 0;
     int pipe_status = 0;
-    stage_t *head_pntr; /* Global variable */
     stage_t *cur_pntr;
 
     /* Read from stdin and check for overflow */
@@ -94,11 +94,16 @@ stage_t *parseline( void ){
         store_stage_info( cur_pntr, i, stage_buf, stage_tokens, num_tokens,
             pipe_status); 
 
+        free( stages[i] ); /* Free the stage after storing it */
+        while( num_tokens-- ){ /* Free the tokens associated with the stage */
+            free( stage_tokens[num_tokens] );
+        }
+
         i++; /* Next stage */
     }
-    
-    /* Give the head of the linked list to the print function */
+
 #ifdef PRINTSTAGES
+    /* Give the head of the linked list to the print function */
     print_stages( head_pntr );
 #endif
     return 0;

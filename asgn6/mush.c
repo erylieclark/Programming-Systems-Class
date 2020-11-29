@@ -37,7 +37,9 @@ int main(int argc, char *argv[]){
         printf("8-P ");
         fflush(stdout);
         parseline();
+            /* REMINDER: IF NO INPUT GIVEN, SKIP FORKING! */
         fork_pipe();
+        cleanup();
     }
 
 

@@ -32,11 +32,11 @@ clean:
 	rm -f $(OBJ)
 
 .PHONY: memcheck
-memcheck_enc: parseline
-	valgrind -s --leak-check=yes --track-origins=yes ./$< < $(TESTDIR)/02_twochar
+memcheck: mush
+	valgrind -s --leak-check=yes --track-origins=yes ./$< 
 
 .PHONY: debug
-debug: parseline
+debug: mush 
 	gdb --args ./$<  
 
 test: $(MAIN)

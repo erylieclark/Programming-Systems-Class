@@ -15,19 +15,23 @@
 #include <string.h>
 #include <unistd.h> /* Read and write */
 #include <sys/types.h>
+#include <sys/stat.h> /* open */
 #include <sys/wait.h>
+#include <fcntl.h>
 
 /* Local Header Files */
 #include "store_stage_info.h"
+#include "parseline.h"
 
 /* Defines */
 #define SIZE 1024
 #define READ 0
 #define WRITE 1
-#define MSG "Hello\n"
 
-void copy_and_exec( int num );
+void copy_and_exec( stage_t *cur_pntr, int infd, int outfd );
+void set_child_fd( stage_t *cur_pntr, int prev_p[], int next_p[] );
 void fork_pipe( void );
+void cleanup( void );
 
 #endif /* _FORK_PIPE_H */
 

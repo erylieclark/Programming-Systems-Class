@@ -87,7 +87,7 @@ void store_stage_info( stage_t *stage_pntr, int stage_num, char *full_command,
     }
     /* Once done with the tokens, args_cnt will be the total argc, store it */
     stage_pntr -> num_args = args_cnt;
-    
+    stage_pntr -> args_v[args_cnt] = NULL;    
     /* Check if the input/output is a pipe. Only set it if the type has not
         already been set to file above. If there is no pipe for the input/
         output, set it to stdin/stdout */

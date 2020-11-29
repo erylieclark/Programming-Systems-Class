@@ -37,13 +37,8 @@ struct stage{
     char *command;
     char *input;
     char *output;
-    char *args_v[MAX_CMD_ARGS];
+    char *args_v[MAX_CMD_ARGS + 1]; /* One for terminating NULL */
     int num_args;
-    
-    /*
-    FILE *input_fd;
-    FILE *output_fd;
-    */
 };
 typedef struct stage stage_t;
 
