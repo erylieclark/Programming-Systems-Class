@@ -73,7 +73,7 @@ int parseline( void ){
     num_stages = parse_by_pipe( cmd, stages );
     if( num_stages == -1 ){ /* -1 on failure, num stages on success */
         return -1;
-    } 
+    }
     while( i < num_stages ){
 
         /* Before using strtok, store the complete stage into a separate buf,
@@ -136,7 +136,7 @@ int parseline( void ){
             /* Now set cur to the new pointer */
             cur_pntr = cur_pntr -> next_stage;
         }
-        /* Get in the info and store it in the structure */
+        /* Get the info and store it in the structure */
         res = store_stage_info( cur_pntr, i, stage_buf, stage_tokens,
             num_tokens, pipe_status); 
         if( res == -1 ){
@@ -150,6 +150,32 @@ int parseline( void ){
         i++; /* Next stage */
     }
 
+    /* Handle cd here */
+    if( num_stages == 1){ /* if its only one stage, check it for cd */
+        if( strcmp("cd", (head_pntr -> args_v)[0] ) == 0 ){
+            if( head_pntr -> num_args < 2 ){ /* If no arg, cd to home dir */
+                if( chdir("/") ){
+                    perror("cannot cd to home directory");
+                    cleanup();
+                    return -1;
+                }
+            }
+            else if( head_pntr -> num_args == 2 ){ /* if one arg, cd to it */
+                if( chdir( (head_pntr -> args_v)[1] ) ){
+                    perror( (head_pntr -> args_v)[1] );
+                    cleanup();
+                    return -1;
+                }
+            }
+            else if( head_pntr -> num_args > 2 ){ /* too many args */
+                fprintf(stderr, "cd: Too many arguments\n");
+                cleanup();
+                return -1;
+            }
+            /* If cd is successful, cleanup after it */
+            cleanup();
+        }
+    }
 #ifdef PRINTSTAGES
     /* Give the head of the linked list to the print function */
     print_stages( head_pntr );

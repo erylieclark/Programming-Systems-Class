@@ -17,7 +17,7 @@
 /*------------------------------------------------------------------------------
 * Function: copy_and_exec
 *
-* Description: main directs all of the other functions to perform in the 
+* Description:  
 *-----------------------------------------------------------------------------*/
 void copy_and_exec( stage_t *cur_pntr, int infd, int outfd ){
     int num_bytes;
@@ -92,8 +92,17 @@ void fork_pipe( void ){
 
     int wstatus, prev_p[2], next_p[2];
     int i = 0;
+    int num = 0;
     pid_t child;
     stage_t *cur_pntr = head_pntr;
+
+    /* head_pntr should be null if the command was cd, so skip forking it */
+        /* cd is taken care of in parseline.c and is cleaned up after there */
+        /* This can also act as a safety for accessing a null pointer */
+    if( head_pntr == NULL){
+        return; /* Do nothing if no commands */
+    }
+
     /* Get the first pipe from the parent process */
     if( pipe(prev_p) ){
         perror("prev and next pipes");
@@ -113,20 +122,13 @@ void fork_pipe( void ){
         }
         if( !child ){ /* This is the child */
             set_child_fd( cur_pntr, prev_p, next_p );
+            num++;
         }
         else{ /* This is the parent */
             /* Close the file descriptors so the process can stop */
             close( prev_p[WRITE] );
             close( prev_p[READ] );
             
-            /* Now wait for the child to be done */
-            if( wait(&wstatus) == -1 ){
-                perror("wait");
-                exit( EXIT_FAILURE );
-            }
-            else if( !WIFEXITED(wstatus) ){
-                exit( WEXITSTATUS(wstatus) );
-            }
 
             /* Make the next pipe the old pipe */
             prev_p[READ] = next_p[READ];
@@ -135,6 +137,24 @@ void fork_pipe( void ){
         }
         i++;
     }while( (cur_pntr = cur_pntr -> next_stage) != NULL );
+            
+    /* Now wait for the child to be done */
+    while( num-- ){
+        if( wait(&wstatus) == -1 ){
+            perror("wait");
+            exit( EXIT_FAILURE );
+        }
+        else if( !WIFEXITED(wstatus) ){ /* terminated abnormally */
+            exit( EXIT_FAILURE );
+        }
+        else{ /* Terminated normally */
+            if( WEXITSTATUS(wstatus) != 0 ){ /* Nonzero exit status*/
+                cleanup();
+                printf("Nonzero exit status\n");
+                return;
+            }
+        }
+    }
 }
 
 
@@ -170,6 +190,7 @@ void cleanup( void ){
         cur_pntr = cur_pntr -> next_stage;
         free( temp );
     }while( cur_pntr != NULL ); 
+    head_pntr = NULL; /* Reset head_pntr */
 }
 
 

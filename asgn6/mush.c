@@ -39,6 +39,7 @@ int main(int argc, char *argv[]){
             continue; /* Skip working with this command */
         }
         fork_pipe(); 
+        fflush( stdout ); /* In case there is something left */
         cleanup();
     
     }
