@@ -23,7 +23,7 @@
 #include "fork_pipe.h"
 
 extern stage_t *head_pntr;
-
+extern int sig_flag;
 int parseline( void );
 void free_tokens( char *stage_tokens[], int num_tokens );
 void free_stages( char *stages[], int num_stages, int cur_stage );

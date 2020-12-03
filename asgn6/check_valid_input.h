@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <signal.h>
 
 #define MAX_CMD_LENGTH (512 + 2) /* One for \n and oen for \0 */
 #define MAX_STAGES 10

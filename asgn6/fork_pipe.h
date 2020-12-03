@@ -30,6 +30,7 @@
 
 void copy_and_exec( stage_t *cur_pntr, int infd, int outfd );
 void set_child_fd( stage_t *cur_pntr, int prev_p[], int next_p[] );
+int verify_cmds( void );
 void fork_pipe( void );
 void cleanup( void );
 

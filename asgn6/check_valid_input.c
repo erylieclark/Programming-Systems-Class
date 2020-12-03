@@ -11,6 +11,9 @@
 
 /* Local Header Files */
 #include "check_valid_input.h"
+#include "parseline.h"
+
+#define OTHER
 
 /*------------------------------------------------------------------------------
 * Function: check_redirs 
@@ -270,9 +273,60 @@ int check_first_char( char c ){
 * return: 0 on success, -1 on failure 
 *-----------------------------------------------------------------------------*/
 int read_into_buffer( char cmd[] ){
-
-    /* Read from stdin and store into a buffer */
+    int c, i = 0;
+    sigset_t block_mask;
+    sigset_t ublock_mask;
+    sigemptyset(&ublock_mask);
+    sigemptyset(&block_mask);
+    sigaddset( &block_mask, SIGINT );
+#ifdef UGH
+/* Read from stdin and store into a buffer */
+    sigprocmask( SIG_SETMASK, &block_mask, NULL );
+    while( (c = getchar()) != EOF ){
+        sigprocmask( SIG_SETMASK, &ublock_mask, NULL );
+        if( sig_flag ){
+            printf("\nDetected Ctrl C: returning...\n");
+            sig_flag = 0;
+            return -1;
+        }
+        switch( c ){
+            case '\n':
+               cmd[i] = '\0';
+               return 0;
+            default: /* Normal char */
+                cmd[i] = c;
+                break;
+        }
+        i++;
+        if( i == MAX_CMD_LENGTH ){
+            fprintf(stderr, "command too long\n");
+            fflush(stdin); /* Get rid of the remaining input if any */
+            return -1;
+        }
+        sigprocmask( SIG_SETMASK, &block_mask, NULL );
+    }
+    sigprocmask( SIG_SETMASK, &ublock_mask, NULL );
+    if( sig_flag ){
+        printf("\nDetected Ctrl C: returning...\n");
+        sig_flag = 0;
+        return -1;
+    }
+    if( feof(stdin) ){ /* Check for end of file */
+        printf("\nPressed ^D: exiting...\n");
+        exit( EXIT_SUCCESS );
+    }
+    else if( ferror(stdin) ){
+        perror("getchar");
+        exit( EXIT_FAILURE );
+    }
+#endif
+#ifdef OTHER
     if( (fgets( cmd, MAX_CMD_LENGTH, stdin )) == NULL ){
+        if( sig_flag ){
+            printf("\nDetected Ctrl C: returning...\n");
+            sig_flag = 0;
+            return -1;
+        }
         if( feof(stdin) ){ /* Check for end of file */
             printf("\nPressed ^D: exiting...\n");
             exit( EXIT_SUCCESS );
@@ -282,6 +336,11 @@ int read_into_buffer( char cmd[] ){
             exit( EXIT_FAILURE );
         }
     }
+    if( sig_flag ){
+        printf("\nDetected Ctrl C: returning...\n");
+        sig_flag = 0;
+        return -1;
+    }
 
     /* Check that it does not overflow the buffer */
     else if( strchr( cmd, '\n' ) == NULL ){
@@ -290,6 +349,8 @@ int read_into_buffer( char cmd[] ){
             /* Will need to not exit here in mush? */
         return -1;
     }
+
+#endif
     return 0;
 }
 
