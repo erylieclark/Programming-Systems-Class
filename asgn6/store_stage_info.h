@@ -46,9 +46,6 @@ char *malloc_struct_string( char *str );
 int store_stage_info( stage_t *stage_pntr, int stage_num, char *full_command,
     char *tokens[], int num_tokens, int pipe_status );
 stage_t *create_stage_struct( void );
-#ifdef PRINTSTAGES
-void print_in_out( stage_t *stage );
-void print_stages( stage_t *stage );
-#endif
+
 #endif /* _STORE_STAGE_INFO_H */
 

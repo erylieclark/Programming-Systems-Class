@@ -1,0 +1,5 @@
+ls
+ls | sort
+cat > file2 | sort
+echo "hello there"
+sleep 2 | echo "times up" | sleep 3 | echo "times up"

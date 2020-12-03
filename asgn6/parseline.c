@@ -176,10 +176,5 @@ int parseline( void ){
             cleanup();
         }
     }
-#ifdef PRINTSTAGES
-    /* Give the head of the linked list to the print function */
-    print_stages( head_pntr );
-#endif
     return 0;
-
 }

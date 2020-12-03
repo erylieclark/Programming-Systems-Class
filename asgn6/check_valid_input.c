@@ -13,7 +13,7 @@
 #include "check_valid_input.h"
 #include "parseline.h"
 
-#define OTHER
+#define OTHER 
 
 /*------------------------------------------------------------------------------
 * Function: check_redirs 
@@ -281,11 +281,8 @@ int read_into_buffer( char cmd[] ){
     sigaddset( &block_mask, SIGINT );
 #ifdef UGH
 /* Read from stdin and store into a buffer */
-    sigprocmask( SIG_SETMASK, &block_mask, NULL );
     while( (c = getchar()) != EOF ){
-        sigprocmask( SIG_SETMASK, &ublock_mask, NULL );
         if( sig_flag ){
-            printf("\nDetected Ctrl C: returning...\n");
             sig_flag = 0;
             return -1;
         }
@@ -303,16 +300,12 @@ int read_into_buffer( char cmd[] ){
             fflush(stdin); /* Get rid of the remaining input if any */
             return -1;
         }
-        sigprocmask( SIG_SETMASK, &block_mask, NULL );
     }
-    sigprocmask( SIG_SETMASK, &ublock_mask, NULL );
     if( sig_flag ){
-        printf("\nDetected Ctrl C: returning...\n");
         sig_flag = 0;
         return -1;
     }
     if( feof(stdin) ){ /* Check for end of file */
-        printf("\nPressed ^D: exiting...\n");
         exit( EXIT_SUCCESS );
     }
     else if( ferror(stdin) ){
@@ -323,12 +316,10 @@ int read_into_buffer( char cmd[] ){
 #ifdef OTHER
     if( (fgets( cmd, MAX_CMD_LENGTH, stdin )) == NULL ){
         if( sig_flag ){
-            printf("\nDetected Ctrl C: returning...\n");
             sig_flag = 0;
             return -1;
         }
         if( feof(stdin) ){ /* Check for end of file */
-            printf("\nPressed ^D: exiting...\n");
             exit( EXIT_SUCCESS );
         }
         else{
@@ -337,9 +328,11 @@ int read_into_buffer( char cmd[] ){
         }
     }
     if( sig_flag ){
-        printf("\nDetected Ctrl C: returning...\n");
         sig_flag = 0;
         return -1;
+    }
+    if( feof(stdin) ){ /* Check for end of file */
+        exit( EXIT_SUCCESS );
     }
 
     /* Check that it does not overflow the buffer */
