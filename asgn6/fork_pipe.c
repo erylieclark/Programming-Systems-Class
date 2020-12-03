@@ -28,7 +28,7 @@
 * param: next_p - array containing file descriptors for the program to write to
 *-----------------------------------------------------------------------------*/
 void set_child_fd( stage_t *cur_pntr, int prev_p[], int next_p[] ){
-    int c, infd, outfd;
+    int infd, outfd;
     
     /* Check what kind of input this stage has */
     switch( cur_pntr -> input_type ){

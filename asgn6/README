@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Assignment 5: parseline 
+* Assignment 6: mush
 *
 * Erin Rylie Clark (eclark04)
 *******************************************************************************/
@@ -7,12 +7,11 @@
 /*--------------------------------INSTRUCTIONS--------------------------------*/
 1. Compile the c source code by entering "make"
 
-2. parseline reads from stdin. One way to do this is to pipe your command line
-    into parseline as follows:
-        echo '<command here>' | ./parseline
+2. mush in a minimally useful shell, you can execute most commands and change
+directories using cd
 
 /*---------------------------------LIMITATIONS--------------------------------*/
-Parseline sets some maximum values for the command line as follows:
+Mush sets some maximum values for the command line as follows:
     command line length: 512 bytes
     commands in a pipeline: 10
     arguments to a command: 10
@@ -21,13 +20,22 @@ These maximum values can be modified in the check_valid_input.h file and
 should not affect the behavior of the program.
 
 /*------------------------------------OTHER-----------------------------------*/
-This version of parseline exits on all errors. I believe in the mush assignment
-that this will not be acceptable as a shell cannot quit at every mistyped
-command. This will be changed in the mush program.
- 
-In addition, I decided to use dynamic memory allocation for parseline as I 
-thought this was the easiest way to deal with various strings and separating
-them out. This program is not currently freeing everything it allocates because
-of the previous statement about exiting on errors. The mush program will need
-to free everything it allocates.
+This program was the most mentally challenging program in my opinion. I had 
+dificulties with pipelining but i believe that i have it working. I wasn't too
+sure how to handle some issues, such as you have to enter ^D twice to get the
+shell to quit in the middle of a command. The other issue that i did not 
+account for was getting interupted in the middle of parsing the line. I could
+not figure out how to simulate this, because parseline happens too quickly for
+me to press ^C in the middle of it. This was happening on its own earlier
+today and after I came back from a break, it magically started working... So
+then i didn't know how to simulate it again and actually fix it. One other
+thing I was unsure about was when to block off signals in the parent and child
+proceses. It seems to be working, and I've tried as many tests as I could think
+of to get it to fail but was not able to... I'm sure you can haha
 
+Anyway, this class was really difficult and time consuming but was by far my
+favorite class this year. You are a fantastic professor, and I really 
+appreciate you posting the lectures afterward as thats super helpful when I'm
+stuck and didn't quite soak in everything during lecture. 
+
+Happy Holidays, and Ill see you in 453!

@@ -13,8 +13,6 @@
 #include "check_valid_input.h"
 #include "parseline.h"
 
-#define OTHER 
-
 /*------------------------------------------------------------------------------
 * Function: check_redirs 
 *
@@ -273,47 +271,12 @@ int check_first_char( char c ){
 * return: 0 on success, -1 on failure 
 *-----------------------------------------------------------------------------*/
 int read_into_buffer( char cmd[] ){
-    int c, i = 0;
     sigset_t block_mask;
     sigset_t ublock_mask;
     sigemptyset(&ublock_mask);
     sigemptyset(&block_mask);
     sigaddset( &block_mask, SIGINT );
-#ifdef UGH
-/* Read from stdin and store into a buffer */
-    while( (c = getchar()) != EOF ){
-        if( sig_flag ){
-            sig_flag = 0;
-            return -1;
-        }
-        switch( c ){
-            case '\n':
-               cmd[i] = '\0';
-               return 0;
-            default: /* Normal char */
-                cmd[i] = c;
-                break;
-        }
-        i++;
-        if( i == MAX_CMD_LENGTH ){
-            fprintf(stderr, "command too long\n");
-            fflush(stdin); /* Get rid of the remaining input if any */
-            return -1;
-        }
-    }
-    if( sig_flag ){
-        sig_flag = 0;
-        return -1;
-    }
-    if( feof(stdin) ){ /* Check for end of file */
-        exit( EXIT_SUCCESS );
-    }
-    else if( ferror(stdin) ){
-        perror("getchar");
-        exit( EXIT_FAILURE );
-    }
-#endif
-#ifdef OTHER
+    
     if( (fgets( cmd, MAX_CMD_LENGTH, stdin )) == NULL ){
         if( sig_flag ){
             sig_flag = 0;
@@ -343,7 +306,6 @@ int read_into_buffer( char cmd[] ){
         return -1;
     }
 
-#endif
     return 0;
 }
 
